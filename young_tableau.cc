@@ -3,7 +3,6 @@
 
 #include <iostream>
 #include <cstdio>
-#include <cstdlib>
 #include <vector>
 #include <algorithm>
 #include <gtest/gtest.h>
@@ -65,10 +64,6 @@ bool young_insert(int (* const &young)[n], const int& v, int& x, int& y) {
                 young[i][j] = up;
                 young[--i][j] = v;
             }
-        }
-        if(i < 0 || j < 0) {
-            cerr << "wrong" << endl;
-            exit(-1);
         }
         x = i; y = j;
         return true;
