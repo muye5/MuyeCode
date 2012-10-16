@@ -53,7 +53,7 @@ int main(int argc, char **argv) {
     int start = 0, over = -1;
     int bn1 = 0, bn2 = 0;
     for(int i = 0; i < len; ++i) {
-        if(a[i] > 1e-6) {
+        if(a[i] > 0) {
             pos = max(old * a[i], a[i]);
             if(equal(pos, a[i])) {
                 bn1 = i;
@@ -65,7 +65,7 @@ int main(int argc, char **argv) {
             if(nag < -1e-6) {
                 nag *= a[i];
             }
-        } else if(a[i] < -1e-6) {
+        } else if(a[i] < 0) {
             int index = bn1;
             pos = max(0.0, nag * a[i]);
             if(equal(pos, 0.0)) {
