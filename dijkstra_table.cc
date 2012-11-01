@@ -80,10 +80,10 @@ public:
         priority_queue<Node, vector<Node>, less<Node> > Q;
         Q.push(nodes[u]);
         while(!Q.empty()) {
-            Node node = Q.top();
-            nodes[node.k].flag = true;
-            vector<Edge>& edges = node.edges;
+            Node& node = nodes[Q.top().k];
             Q.pop();
+            node.flag = true;
+            vector<Edge>& edges = node.edges;
             for(vector<Edge>::iterator it = edges.begin(); it != edges.end(); ++it) {
                 Node& vnode = nodes[it->v];
                 if(!vnode.flag && vnode.path > node.path + it->distance) {
