@@ -66,6 +66,7 @@ int main(int argc, char **argv) {
     find_all_palindromes("abc");
     find_all_palindromes("habbafg");
     find_all_palindromes("abccbaabccba");
+    find_all_palindromes("dabccbaabccba");
     return 0;
 }
 

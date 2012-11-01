@@ -55,11 +55,8 @@ public:
             return *this;
         }
     }
-    friend bool operator <(const Node& u, const Node& v) {
+    friend bool operator<(const Node& u, const Node& v) {
         return (u.path > v.path);
-    }
-    void print() {
-        cout << path << endl;
     }
 };
 
@@ -96,11 +93,6 @@ public:
             }
         }
         return nodes[v].path;
-    }
-    void print() {
-        for(vector<Node>::iterator it = nodes.begin(); it != nodes.end(); ++it) {
-            it->print();
-        }
     }
     void clear() {
         nodes.erase(nodes.begin() + 1, nodes.end());
