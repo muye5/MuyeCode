@@ -8,9 +8,9 @@
 using namespace std;
 
 const int M = 5001;
-int tmp[5001];
-int array[5001];
-int backup[5001];
+int tmp[M];
+int array[M];
+int backup[M];
 
 template <class T>
 int do_merge(T a[], T b[], int l, int m, int r) {
