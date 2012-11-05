@@ -2,6 +2,7 @@
 // Author: Muye (muyepiaozhou@gmail.com)
 // http://acm.zju.edu.cn/onlinejudge/showProblem.do?problemId=484
 // 4N的空间,让我汗了好久好久
+// 因为它是一种平衡树,而非完全树,其最后一层的节点并不是连续的从左到右分布的
 
 #include <iostream>
 using namespace std;
