@@ -1,5 +1,7 @@
 // Copyright (c) 2012 default
 // Author: Muye (muyepiaozhou@gmail.com)
+// http://acm.zju.edu.cn/onlinejudge/showProblem.do?problemId=484
+// 对比线段树的结果
 
 #include <iostream>
 #include <climits>

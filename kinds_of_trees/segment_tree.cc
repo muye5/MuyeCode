@@ -1,5 +1,7 @@
 // Copyright (c) 2012 Tencent Inc.
 // Author: Muye (muyepiaozhou@gmail.com)
+// http://acm.zju.edu.cn/onlinejudge/showProblem.do?problemId=484
+// 4N的空间,让我汗了好久好久
 
 #include <iostream>
 using namespace std;
@@ -11,7 +13,7 @@ struct Node {
 
 const int M = 5001;
 int values[M];
-Node seg_tree[2 * M];
+Node seg_tree[4 * M];
 
 void build_tree(int index, int l, int r) {
     seg_tree[index].left = l;
