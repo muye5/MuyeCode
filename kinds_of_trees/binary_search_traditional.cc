@@ -21,7 +21,7 @@ int binary_search_traditional(int x, int v[], int n) {
 }
 
 /*
- * always return the first element which is same with x
+ * always return the first element which is the same with x
  */
 
 int binary_search_better(int x, int v[], int n) {
