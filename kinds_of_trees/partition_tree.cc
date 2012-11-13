@@ -2,6 +2,10 @@
 // Author: Muye (muyepiaozhou@gmail.com)
 // http://poj.org/problem?id=2104
 // http://blog.csdn.net/acceptedxukai/article/details/6937084
+// 求索引区间内的Kth值
+// 感觉有点类似快速排序,最后的叶子节点是排好序的.
+// 记录了中间的排序过程
+// 建树、更新、查询. 这里没有更新
 
 #include <iostream>
 #include <cmath>

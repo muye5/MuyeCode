@@ -1,6 +1,7 @@
 // Copyright (c) 2012 Tencent Inc.
 // Author: Muye (muyepiaozhou@gmail.com)
 // http://acm.zju.edu.cn/onlinejudge/showProblem.do?problemId=484
+// Minimum Inversion Number
 // 4N的空间,让我汗了好久好久
 // 因为它是一种平衡树,而非完全树,其最后一层的节点并不是连续的从左到右分布的
 
@@ -29,6 +30,7 @@ void build_tree(int index, int l, int r) {
     }
 }
 
+// 这个问题每次都插到了最后的叶子节点,想想有没有更好的办法
 void insert_node(int index, int x) {
     if(seg_tree[index].left == x && seg_tree[index].right == x) {
         seg_tree[index].num = 1;
@@ -43,6 +45,9 @@ void insert_node(int index, int x) {
     }
 }
 
+// 其实这个查询的写法有很多种,写了几个线段树之后感觉还是不要私自乱改查询区间
+// 虽然这个写的也对,但是感觉还是在第一步判断的时候可以判断成 >=l && <= r
+// 这个查询没有查到最后的叶子节点啊...
 int query(int index, int l, int r) {
     if(seg_tree[index].left == l && seg_tree[index].right == r) {
         return seg_tree[index].num;
