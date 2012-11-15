@@ -1,6 +1,8 @@
 // Copyright (c) 2012 default
 // Author: Muye (muyepiaozhou@gmail.com)
 // http://blog.163.com/zhaohai_1988/blog/static/20951008520128641030596/
+// 原来这叫做"最短摘要算法"
+// 哈哈今天又学一招
 // 从一个长字符串中查找包含给定字符集合的最短子串
 // 例如,长串为 "aaaaaaaaaacbebbbbbdddddddcccccc",字符集为{abcd},那么最短子串是"acbebbbbbd"
 // 如果将条件改为"包含且只包含给定字符集合",你的算法和实现又将如何改动。
