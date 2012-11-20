@@ -13,11 +13,8 @@
 #include <tr1/memory>
 #include <driver/mysql_public_iface.h>
 
-// #include "mysql/connect/property.h"
-
 namespace MuyeMySQL {
     using namespace std;
-    // using namespace MuyeProperty;
     class MuyeConnection {
     private:
         string m_url;
