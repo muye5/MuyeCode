@@ -1,0 +1,61 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.8	//
+EXAMPLE_DB	property.h	7;"	d
+EXAMPLE_HOST	property.h	8;"	d
+EXAMPLE_NUM_TEST_ROWS	property.h	13;"	d
+EXAMPLE_PASS	property.h	10;"	d
+EXAMPLE_USER	property.h	9;"	d
+MYSQL_CONNECT_CONNECT_H_	connect.h	6;"	d
+MuyeConnection	connect.cc	/^    MuyeConnection::MuyeConnection(const string& url, const string& user, const string& pass, const string& database)$/;"	f	class:MuyeMySQL::MuyeConnection	signature:(const string& url, const string& user, const string& pass, const string& database)
+MuyeConnection	connect.h	/^        MuyeConnection(const string& url, const string& user, const string& pass, const string& database);$/;"	p	class:MuyeMySQL::MuyeConnection	access:public	signature:(const string& url, const string& user, const string& pass, const string& database)
+MuyeConnection	connect.h	/^    class MuyeConnection {$/;"	c	namespace:MuyeMySQL
+MuyeMySQL	connect.cc	/^namespace MuyeMySQL {$/;"	n	file:
+MuyeMySQL	connect.h	/^namespace MuyeMySQL {$/;"	n
+MuyeMySQL::MuyeConnection	connect.h	/^    class MuyeConnection {$/;"	c	namespace:MuyeMySQL
+MuyeMySQL::MuyeConnection::MuyeConnection	connect.cc	/^    MuyeConnection::MuyeConnection(const string& url, const string& user, const string& pass, const string& database)$/;"	f	class:MuyeMySQL::MuyeConnection	signature:(const string& url, const string& user, const string& pass, const string& database)
+MuyeMySQL::MuyeConnection::MuyeConnection	connect.h	/^        MuyeConnection(const string& url, const string& user, const string& pass, const string& database);$/;"	p	class:MuyeMySQL::MuyeConnection	access:public	signature:(const string& url, const string& user, const string& pass, const string& database)
+MuyeMySQL::MuyeConnection::con	connect.h	/^        tr1::shared_ptr<sql::Connection> con;$/;"	m	class:MuyeMySQL::MuyeConnection	access:private
+MuyeMySQL::MuyeConnection::createConnection	connect.cc	/^    void MuyeConnection::createConnection() {$/;"	f	class:MuyeMySQL::MuyeConnection	signature:()
+MuyeMySQL::MuyeConnection::createConnection	connect.h	/^        void createConnection();$/;"	p	class:MuyeMySQL::MuyeConnection	access:private	signature:()
+MuyeMySQL::MuyeConnection::createStatement	connect.cc	/^    void MuyeConnection::createStatement() {$/;"	f	class:MuyeMySQL::MuyeConnection	signature:()
+MuyeMySQL::MuyeConnection::createStatement	connect.h	/^        void createStatement();$/;"	p	class:MuyeMySQL::MuyeConnection	access:private	signature:()
+MuyeMySQL::MuyeConnection::driver	connect.h	/^        sql::Driver *driver;$/;"	m	class:MuyeMySQL::MuyeConnection	access:private
+MuyeMySQL::MuyeConnection::executeQuery	connect.cc	/^    auto_ptr<sql::ResultSet> MuyeConnection::executeQuery(const string& sql) {$/;"	f	class:MuyeMySQL::MuyeConnection	signature:(const string& sql)
+MuyeMySQL::MuyeConnection::executeQuery	connect.h	/^        auto_ptr<sql::ResultSet> executeQuery(const string& sql);$/;"	p	class:MuyeMySQL::MuyeConnection	access:public	signature:(const string& sql)
+MuyeMySQL::MuyeConnection::getConnection	connect.h	/^        tr1::shared_ptr<sql::Connection> getConnection() {$/;"	f	class:MuyeMySQL::MuyeConnection	access:public	signature:()
+MuyeMySQL::MuyeConnection::getStatement	connect.h	/^        tr1::shared_ptr<sql::Statement> getStatement() {$/;"	f	class:MuyeMySQL::MuyeConnection	access:public	signature:()
+MuyeMySQL::MuyeConnection::m_database	connect.h	/^        string m_database;$/;"	m	class:MuyeMySQL::MuyeConnection	access:private
+MuyeMySQL::MuyeConnection::m_pass	connect.h	/^        string m_pass;$/;"	m	class:MuyeMySQL::MuyeConnection	access:private
+MuyeMySQL::MuyeConnection::m_url	connect.h	/^        string m_url;$/;"	m	class:MuyeMySQL::MuyeConnection	access:private
+MuyeMySQL::MuyeConnection::m_user	connect.h	/^        string m_user;$/;"	m	class:MuyeMySQL::MuyeConnection	access:private
+MuyeMySQL::MuyeConnection::stmt	connect.h	/^        tr1::shared_ptr<sql::Statement> stmt;$/;"	m	class:MuyeMySQL::MuyeConnection	access:private
+MuyeProperty	property.h	/^namespace MuyeProperty {$/;"	n
+MuyeProperty::_test_data	property.h	/^    struct _test_data {$/;"	s	namespace:MuyeProperty
+MuyeProperty::_test_data::id	property.h	/^        int id;$/;"	m	struct:MuyeProperty::_test_data	access:public
+MuyeProperty::_test_data::label	property.h	/^        const char* label;$/;"	m	struct:MuyeProperty::_test_data	access:public
+MuyeProperty::test_data	property.h	/^    static _test_data test_data[EXAMPLE_NUM_TEST_ROWS] = {$/;"	m	namespace:MuyeProperty
+_EXAMPLES_H	property.h	3;"	d
+_test_data	property.h	/^    struct _test_data {$/;"	s	namespace:MuyeProperty
+con	connect.h	/^        tr1::shared_ptr<sql::Connection> con;$/;"	m	class:MuyeMySQL::MuyeConnection	access:private
+createConnection	connect.cc	/^    void MuyeConnection::createConnection() {$/;"	f	class:MuyeMySQL::MuyeConnection	signature:()
+createConnection	connect.h	/^        void createConnection();$/;"	p	class:MuyeMySQL::MuyeConnection	access:private	signature:()
+createStatement	connect.cc	/^    void MuyeConnection::createStatement() {$/;"	f	class:MuyeMySQL::MuyeConnection	signature:()
+createStatement	connect.h	/^        void createStatement();$/;"	p	class:MuyeMySQL::MuyeConnection	access:private	signature:()
+driver	connect.h	/^        sql::Driver *driver;$/;"	m	class:MuyeMySQL::MuyeConnection	access:private
+executeQuery	connect.cc	/^    auto_ptr<sql::ResultSet> MuyeConnection::executeQuery(const string& sql) {$/;"	f	class:MuyeMySQL::MuyeConnection	signature:(const string& sql)
+executeQuery	connect.h	/^        auto_ptr<sql::ResultSet> executeQuery(const string& sql);$/;"	p	class:MuyeMySQL::MuyeConnection	access:public	signature:(const string& sql)
+getConnection	connect.h	/^        tr1::shared_ptr<sql::Connection> getConnection() {$/;"	f	class:MuyeMySQL::MuyeConnection	access:public	signature:()
+getStatement	connect.h	/^        tr1::shared_ptr<sql::Statement> getStatement() {$/;"	f	class:MuyeMySQL::MuyeConnection	access:public	signature:()
+id	property.h	/^        int id;$/;"	m	struct:MuyeProperty::_test_data	access:public
+label	property.h	/^        const char* label;$/;"	m	struct:MuyeProperty::_test_data	access:public
+m_database	connect.h	/^        string m_database;$/;"	m	class:MuyeMySQL::MuyeConnection	access:private
+m_pass	connect.h	/^        string m_pass;$/;"	m	class:MuyeMySQL::MuyeConnection	access:private
+m_url	connect.h	/^        string m_url;$/;"	m	class:MuyeMySQL::MuyeConnection	access:private
+m_user	connect.h	/^        string m_user;$/;"	m	class:MuyeMySQL::MuyeConnection	access:private
+main	connect_test.cc	/^int main(int argc, char** argv) {$/;"	f	signature:(int argc, char** argv)
+stmt	connect.h	/^        tr1::shared_ptr<sql::Statement> stmt;$/;"	m	class:MuyeMySQL::MuyeConnection	access:private
+test_data	property.h	/^    static _test_data test_data[EXAMPLE_NUM_TEST_ROWS] = {$/;"	m	namespace:MuyeProperty
