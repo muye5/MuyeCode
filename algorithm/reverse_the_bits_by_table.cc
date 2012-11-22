@@ -9,11 +9,13 @@
 // 11 <===> 11
 // 所以原本的 [0, 1, 2, 3] 变为 [0, 2, 1, 3]
 // 故对于 8 bits 的 unsigned char, 只需分 3 次 递归反转 log8 = 3
-//                8
-//           /         \
-//         4             4
-//     /      \       /      \
-//   2          2   2          2
+/*
+                  8
+             /         \
+           4             4
+       /      \       /      \
+     2          2   2          2
+*/
 
 #include <cstdio>
 
@@ -27,7 +29,7 @@ int main(int argc, char **argv) {
     unsigned int v = 15;
     unsigned int c = (BitReverseTable[v & 0xff] << 24
                       | BitReverseTable[(v >> 8) & 0xff] << 16
-                      | BitReverseTable[(v >> 16) & 0xff] << 24
+                      | BitReverseTable[(v >> 16) & 0xff] << 8
                       | BitReverseTable[(v >> 24) & 0xff]);
     unsigned char *p = (unsigned char *)&v;
     unsigned char *q = (unsigned char *)&c;
