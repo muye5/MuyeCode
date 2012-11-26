@@ -156,7 +156,7 @@ TEST(merge_sort, foo) {
         for(int i = 0; i < len; ++i) {
             a[i] = rand() % 100;
         }
-        random_shuffle(a, a + len, prandom);
+        random_shuffle(a, a + len, prandom); // 貌似有点多此一举了,权当练习吧,本来不是循环10000次的...
         merge_sort(a, 0, len - 1);
         for(int i = 0; i < len - 1; ++i) {
             ASSERT_LE(a[i], a[i+1]);
