@@ -32,11 +32,12 @@
 // 5、使用第3步的方法对R[1:N-2s]和R[N+1-2s:N-s]作归并排序,使用R[N+1-s:N]作辅助空间.只不过此时是R[N+1-s:N]和R[N+1-2s:N-s]交换,并且从右往左(从大到小)作归并.
 // 注意:这一步完成后R[1:N-s]已排序,R[N+1-s:N]为R中最大的s个元素(但次序已打乱).
 //
-// 6、再次对R[N+1-2s:N]作插入排序.这一步的时间复杂度为O(s^2)=O(N).
-// http://bbs.csdn.net/topics/210083892
+// 6、再次对R[N+1-s:N]作插入排序.这一步的时间复杂度为O(s^2)=O(N).
 
 #include <iostream>
 #include <cmath>
+#include <ctime>
+#include <cstdlib>
 #include <algorithm>
 #include <gtest/gtest.h>
 using namespace std;
@@ -49,9 +50,9 @@ void do_merge(int a[], int l, int m, int h) {
     int k = (N + n - 1) / n - 2, kz = (m - l + n) / n;
     swap_ranges(a+l+(kz-1)*n, a+l+kz*n, a+l+k*n);
     // 对块按照首元素排序
-    for(int i = 0; i < k; ++i) {
+    for(int i = 0; i < k - 1; ++i) {
         int t = i;
-        for(int j = i; j < k; ++j) {
+        for(int j = i + 1; j < k; ++j) {
             if(a[l+t*n] > a[l+j*n]) {
                 t = j;
             } else if(a[l+t*n] == a[l+j*n]) {
@@ -76,10 +77,10 @@ void do_merge(int a[], int l, int m, int h) {
             }
         }
         while(x < l + (i + 2) * n) {
-            swap(a[++t], a[++x]);
+            swap(a[t++], a[x++]);
         }
         while(y < l + (k + 1) * n) {
-            swap(a[++t], a[++y]);
+            swap(a[t++], a[y++]);
         }
     }
     int s = h - l + 1 - k * n; // 最后两个块的元素个数
@@ -109,10 +110,10 @@ void do_merge(int a[], int l, int m, int h) {
     }
     /*
      * 这步可以省略了,因为之前的x已经排好序了
-    while(x >= l) {
-        swap(a[x--], a[t--]);
-        }
-        */
+     while(x >= l) {
+     swap(a[x--], a[t--]);
+     }
+     */
     while(y >= h - s + 1 && t >= 0) {
         swap(a[y--], a[t--]);
     }
@@ -141,16 +142,23 @@ void merge_sort(int a[], int l, int h) {
     do_merge(a, l, m, h);
 }
 
+ptrdiff_t random(ptrdiff_t i) {
+    return rand() % i;
+}
+
 TEST(merge_sort, foo) {
     const int len = 20;
     int a[len];
-    for(int i = 0; i < len; ++i) {
-        a[i] = i + 1;
-    }
-    for(int k = 1; k < len; ++k ) {
-        random_shuffle(a, a + k);
-        merge_sort(a, 0, k - 1);
-        for(int i = 0; i < k - 1; ++i) {
+    srand((unsigned)time(NULL));
+    ptrdiff_t (*prandom)(ptrdiff_t) = random;
+
+    for(int k = 1; k < 10000; ++k ) {
+        for(int i = 0; i < len; ++i) {
+            a[i] = rand() % 100;
+        }
+        random_shuffle(a, a + len, prandom);
+        merge_sort(a, 0, len - 1);
+        for(int i = 0; i < len - 1; ++i) {
             ASSERT_LE(a[i], a[i+1]);
         }
     }
