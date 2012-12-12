@@ -19,20 +19,19 @@ int main(int argc, char **argv) {
         for(i = 0; i < n; ++i) {
             scanf("%lld", height + i);
         }
-        left[0] = -1;
         for(i = 0; i < n; ++i) {
             for(j = i - 1; j >= 0 && height[j] >= height[i]; j = left[j]);
             left[i] = j;
         }
-        right[n-1] = n;
         for(i = n - 1; i >= 0; --i) {
             for(j = i + 1; j < n && height[j] >= height[i]; j = right[j]);
             right[i] = j;
         }
-        int64_t mx = 0;
+        int64_t mx = 0, tmp = 0;
         for(i = 0; i < n; ++i) {
-            if(height[i] * (right[i] - left[i] - 1) > mx) {
-                mx = height[i] * (right[i] - left[i] - 1);
+            tmp = (int64_t)(right[i] - left[i] - 1) * height[i];
+            if(tmp > mx) {
+                mx = tmp;
             }
         }
         printf("%lld\n", mx);
