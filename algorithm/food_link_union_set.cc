@@ -1,7 +1,9 @@
 // Copyright (c) 2012 default
 // Author: Muye (muyepiaozhou@gmail.com)
+// 并查集题目:食物链
+// http://poj.org/problem?id=1182
 
-#include <iostream>
+#include <cstdio>
 using namespace std;
 
 int lnk[50001];
@@ -11,8 +13,9 @@ int query_set(int x) {
     if(lnk[x] == x) {
         return x;
     } else {
+        int tmp = lnk[x]; // 这个节点会是老的根节点
         lnk[x] = query_set(lnk[x]);
-        rnk[x] = (rnk[x] + rnk[lnk[x]]) % 3;
+        rnk[x] = (rnk[x] + rnk[tmp]) % 3;
         return lnk[x];
     }
 }
@@ -23,7 +26,6 @@ void union_set(int x, int y, int a, int b, int c) {
     } else {
         rnk[b] = (rnk[x] - rnk[y] + 2) % 3;
     }
-    query_set(y);
     lnk[b] = a;
 }
 
@@ -38,10 +40,10 @@ int main(int argc, char **argv) {
     int n, k, cnt = 0;
     int c, x, y;
 
-    cin >> n >> k;
+    scanf("%d%d", &n, &k);
     init_set(n);
     for(int i = 0; i < k; ++i) {
-        cin >> c >> x >> y;
+        scanf("%d%d%d", &c, &x, &y);
         if(x > n || y > n || (c == 2 && x == y)) {
             ++cnt;
             continue;
@@ -63,7 +65,7 @@ int main(int argc, char **argv) {
             union_set(x, y, a, b, c);
         }
     }
-    cout << cnt << endl;
+    printf("%d\n", cnt);
     return 0;
 }
 
