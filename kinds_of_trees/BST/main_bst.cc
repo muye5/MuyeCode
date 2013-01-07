@@ -29,6 +29,9 @@ int main(int argc, char **argv) {
     int_bst.Print();
     cout << int_bst.Delete(6) << endl;
     cout << int_bst.Delete(5) << endl;
+    cout << int_bst.Delete(7) << endl;
+    cout << int_bst.Delete(3) << endl;
+    cout << int_bst.Delete(9) << endl;
     int_bst.Print();
 
     return 0;

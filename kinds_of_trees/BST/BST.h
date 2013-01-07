@@ -114,11 +114,13 @@ bool BST<T>::Delete(const T& value, BST_Node<T> *&p) {
         if(p->left && p->right) {
             p->value = successor(p->right);
         } else {
+            BST_Node<T> *q = p;
             if(p->left) {
                 p = p->left;
             } else {
                 p = p->right;
             }
+            delete q;
         }
         --num;
         return true;
