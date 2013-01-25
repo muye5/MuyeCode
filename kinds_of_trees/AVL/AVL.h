@@ -38,18 +38,22 @@ public:
     void Insert(const T& value);
     void Delete(const T& value);
     void Print() const;
+    bool Check() const; // 检查AVL树是否合法
 private:
     const AVL_Node<T>* Find(const T& value, AVL_Node<T> *&p);
     void Insert(const T& value, AVL_Node<T> *&p);
     void Delete(const T& value, AVL_Node<T> *&p);
     void Print(AVL_Node<T> * const &p) const;
     void Free(AVL_Node<T> *&p);
+    int Check(AVL_Node<T> * const &p) const;
 private:
     int height(AVL_Node<T> *&p);
+    AVL_Node<T>* Max_Node(AVL_Node<T> *&p);
+    AVL_Node<T>* Min_Node(AVL_Node<T> *&p);
     void AVL_Left_Rotate(AVL_Node<T> *&p);
     void AVL_Right_Rotate(AVL_Node<T> *&p);
-    void AVL_Double_Left_Rotate(AVL_Node<T> *&p);
-    void AVL_Double_Right_Rotate(AVL_Node<T> *&p);
+    void AVL_Left_Right_Rotate(AVL_Node<T> *&p);
+    void AVL_Right_Left_Rotate(AVL_Node<T> *&p);
 private:
     AVL_Node<T> *head;
     size_t num;
@@ -99,7 +103,6 @@ template<class T>
 void AVL<T>::Insert(const T& value, AVL_Node<T> *&p) {
     if(p == NULL) {
         p = new AVL_Node<T>(value);
-        p->height = 0;
         ++num;
     } else if(value < p->value) {
         Insert(value, p->left);
@@ -109,11 +112,9 @@ void AVL<T>::Insert(const T& value, AVL_Node<T> *&p) {
                 AVL_Right_Rotate(p);
             } else {
                 // case 3: left -- right
-                AVL_Double_Right_Rotate(p);
+                AVL_Right_Left_Rotate(p);
             }
         }
-        // 这个有点问题,如何更新树的高度
-        p->height = ;
     } else {
         Insert(value, p->right);
         if(height(p->right) - height(p->left) == 2) {
@@ -122,10 +123,11 @@ void AVL<T>::Insert(const T& value, AVL_Node<T> *&p) {
                 AVL_Left_Rotate(p);
             } else {
                 // case 4: right -- left
-                AVL_Double_Left_Rotate(p);
+                AVL_Left_Right_Rotate(p);
             }
         }
     }
+    p->height = max(height(p->left), height(p->right)) + 1;
 }
 
 template<class T>
@@ -140,12 +142,12 @@ void AVL<T>::Delete(const T& value, AVL_Node<T> *&p) {
     }
     if(p->value == value) {
         if(p->left && p->right) {
-            if(p->left->fix < p->right->fix) {
+            if(height(p->left) > height(p->right)) {
                 AVL_Right_Rotate(p);
-                return Delete(value, p->right);
+                Delete(value, p->right);
             } else {
                 AVL_Left_Rotate(p);
-                return Delete(value, p->left);
+                Delete(value, p->left);
             }
         } else {
             AVL_Node<T> *q = p;
@@ -156,12 +158,11 @@ void AVL<T>::Delete(const T& value, AVL_Node<T> *&p) {
             }
             delete q;
             --num;
-            return true;
         }
     } else if(value < p->value) {
-        return Delete(value, p->left);
+        Delete(value, p->left);
     } else {
-        return Delete(value, p->right);
+        Delete(value, p->right);
     }
 }
 
@@ -174,19 +175,59 @@ void AVL<T>::Print() const {
 template<class T>
 void AVL<T>::Print(AVL_Node<T> * const &p) const {
     if(p) {
-        Print(p->left);
         std::cout << p->value << "  ";
+        Print(p->left);
         Print(p->right);
     }
 }
 
 template<class T>
-int AVL<T>::height(AVL_Node<T> *&p) {
-    if(p == NULL) {
-        return -1;
+bool AVL<T>::Check() const {
+    return (Check(head) == height(head));
+}
+
+template<class T>
+int AVL<T>::Check(AVL_Node<T> * const &p) const {
+    if(p) {
+        if(max(Check(p->left), Check(p->right)) + 1 == height(p)) {
+            return height(p);
+        } else {
+            std::cerr << "Check(p->left) = "
+               << Check(p->left)
+               << "\nCheck(p->right) = "
+               << Check(p->right)
+               << "\nheight(p) = "
+               << height(p)
+               << "\np->value = "
+               << p->value
+               << std::endl;
+            exit(-1);
+        }
     } else {
-        // 这个也有问题
-        return max(height(p->left), height(p->right)) + 1;
+        return -1;
+    }
+}
+
+template<class T>
+int AVL<T>::height(AVL_Node<T> *&p) {
+    return p == NULL ? -1 : p->height;
+}
+
+template<class T>
+AVL_Node<T>* AVL<T>::Max_Node(AVL_Node<T> *&p) {
+    if(p == NULL || p->right == NULL) {
+        return p;
+    } else {
+        return Max_Node(p->right);
+    }
+}
+
+template<class T>
+AVL_Node<T>* AVL<T>::Min_Node(AVL_Node<T> *&p) {
+    if(p == NULL || p->left == NULL) {
+        return p;
+    } else {
+        return Max_Node(p->left);
     }
 }
 
@@ -207,11 +248,15 @@ void AVL<T>::AVL_Right_Rotate(AVL_Node<T> *&p) {
 }
 
 template<class T>
-void AVL<T>::AVL_Double_Left_Rotate(AVL_Node<T> *&p) {
+void AVL<T>::AVL_Left_Right_Rotate(AVL_Node<T> *&p) {
+    AVL_Left_Rotate(p->left);
+    AVL_Right_Rotate(p);
 }
 
 template<class T>
-void AVL<T>::AVL_Double_Right_Rotate(AVL_Node<T> *&p) {
+void AVL<T>::AVL_Right_Left_Rotate(AVL_Node<T> *&p) {
+    AVL_Right_Rotate(p->right);
+    AVL_Left_Rotate(p);
 }
 
 template<class T>
