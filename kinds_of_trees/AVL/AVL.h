@@ -23,7 +23,7 @@ public:
 };
 
 template<class T>
-AVL_Node<T>::AVL_Node(const T& v, AVL_Node *l = NULL, AVL_Node *r = NULL, int h = -1)
+AVL_Node<T>::AVL_Node(const T& v, AVL_Node *l, AVL_Node *r, int h)
     : value(v), left(l), right(r), height(h) {
 }
 
@@ -34,7 +34,7 @@ public:
         AVL(InputIterator first, InputIterator last);
     ~AVL();
 public:
-    AVL_Node<T>* Find(const T& value);
+    const AVL_Node<T>* Find(const T& value);
     void Insert(const T& value);
     void Delete(const T& value);
     void Print() const;
@@ -45,9 +45,11 @@ private:
     void Delete(const T& value, AVL_Node<T> *&p);
     void Print(AVL_Node<T> * const &p) const;
     void Free(AVL_Node<T> *&p);
+    // AVL_Node<T> * const &p的const非常重要
+    // 否则就不能被Check()调用
     int Check(AVL_Node<T> * const &p) const;
 private:
-    int height(AVL_Node<T> *&p);
+    int height(AVL_Node<T> * const &p) const;
     AVL_Node<T>* Max_Node(AVL_Node<T> *&p);
     AVL_Node<T>* Min_Node(AVL_Node<T> *&p);
     void AVL_Left_Rotate(AVL_Node<T> *&p);
@@ -143,11 +145,13 @@ void AVL<T>::Delete(const T& value, AVL_Node<T> *&p) {
     if(p->value == value) {
         if(p->left && p->right) {
             if(height(p->left) > height(p->right)) {
-                AVL_Right_Rotate(p);
-                Delete(value, p->right);
+                AVL_Node<T> *q = Max_Node(p->left);
+                p->value = q->value;
+                Delete(p->value, p->left);
             } else {
-                AVL_Left_Rotate(p);
-                Delete(value, p->left);
+                AVL_Node<T> *q = Min_Node(p->right);
+                p->value = q->value;
+                Delete(p->value, p->right);
             }
         } else {
             AVL_Node<T> *q = p;
@@ -158,12 +162,34 @@ void AVL<T>::Delete(const T& value, AVL_Node<T> *&p) {
             }
             delete q;
             --num;
+            return;
         }
     } else if(value < p->value) {
         Delete(value, p->left);
+        if(height(p->right) - height(p->left) == 2) {
+            if(height(p->right->right) - height(p->left) == 1) {
+                // delete case 2: 从左子树删除一个节点导致right -- right节点比左子树高度高1(注意是高1)
+                // delete case 2: right -- right - left = 1
+                AVL_Left_Rotate(p);
+            } else {
+                // case 4: right -- left - right = 1
+                AVL_Left_Right_Rotate(p);
+            }
+        }
     } else {
         Delete(value, p->right);
+        if(height(p->left) - height(p->right) == 2) {
+            if(height(p->left->left) - height(p->right) == 1) {
+                // delete case 1: 从右子树删除一个节点导致left -- left节点比右子树高度高1(注意是高1)
+                // delete case 1: left -- left - right = 1
+                AVL_Right_Rotate(p);
+            } else {
+                // case 3: left -- right - right = 1
+                AVL_Right_Left_Rotate(p);
+            }
+        }
     }
+    p->height = max(height(p->left), height(p->right)) + 1;
 }
 
 template<class T>
@@ -209,7 +235,7 @@ int AVL<T>::Check(AVL_Node<T> * const &p) const {
 }
 
 template<class T>
-int AVL<T>::height(AVL_Node<T> *&p) {
+int AVL<T>::height(AVL_Node<T> * const &p) const {
     return p == NULL ? -1 : p->height;
 }
 
@@ -236,6 +262,8 @@ void AVL<T>::AVL_Left_Rotate(AVL_Node<T> *&p) {
     AVL_Node<T> *tmp = p->right;
     p->right = tmp->left;
     tmp->left = p;
+    p->height = max(height(p->left), height(p->right)) + 1;
+    tmp->height = max(height(tmp->left), height(tmp->right)) + 1;
     p = tmp;
 }
 
@@ -244,6 +272,8 @@ void AVL<T>::AVL_Right_Rotate(AVL_Node<T> *&p) {
     AVL_Node<T> *tmp = p->left;
     p->left = tmp->right;
     tmp->right = p;
+    p->height = max(height(p->left), height(p->right)) + 1;
+    tmp->height = max(height(tmp->left), height(tmp->right)) + 1;
     p = tmp;
 }
 
