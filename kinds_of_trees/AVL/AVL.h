@@ -43,7 +43,7 @@ private:
     const AVL_Node<T>* Find(const T& value, AVL_Node<T> *&p);
     void Insert(const T& value, AVL_Node<T> *&p);
     void Delete(const T& value, AVL_Node<T> *&p);
-    void Print(AVL_Node<T> * const &p) const;
+    void Print(AVL_Node<T> * const &p, int layer) const;
     void Free(AVL_Node<T> *&p);
     // AVL_Node<T> * const &p的const非常重要
     // 否则就不能被Check()调用
@@ -194,16 +194,19 @@ void AVL<T>::Delete(const T& value, AVL_Node<T> *&p) {
 
 template<class T>
 void AVL<T>::Print() const {
-    Print(head);
+    Print(head, 0);
     std::cout << std::endl;
 }
 
 template<class T>
-void AVL<T>::Print(AVL_Node<T> * const &p) const {
+void AVL<T>::Print(AVL_Node<T> * const &p, int layer) const {
     if(p) {
-        std::cout << p->value << "  ";
-        Print(p->left);
-        Print(p->right);
+        Print(p->right, layer + 1);
+        for(int i = 0; i < layer; ++i) {
+            std::cout << "\t";
+        }
+        std::cout << "[" << p->value << ":" << p->height << "]" << std::endl;
+        Print(p->left, layer + 1);
     }
 }
 
@@ -253,7 +256,7 @@ AVL_Node<T>* AVL<T>::Min_Node(AVL_Node<T> *&p) {
     if(p == NULL || p->left == NULL) {
         return p;
     } else {
-        return Max_Node(p->left);
+        return Min_Node(p->left);
     }
 }
 

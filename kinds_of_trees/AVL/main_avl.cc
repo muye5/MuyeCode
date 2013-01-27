@@ -7,35 +7,19 @@ using namespace std;
 
 
 int main(int argc, char **argv) {
-    int ints[] = {1, 3, 5, 7, 9};
-    char chars[] = {'A', 'B', 'C', 'D', 'E'};
+    int ints[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
 
-    AVL<int> int_avl(ints, ints + 5);
-    AVL<char> char_avl(chars, chars + 5);
-
-    const AVL_Node<char> *pchar = char_avl.Find('D');
-    cout <<"pchar->value = " << pchar->value << endl;
-    cout <<"pchar->height = " << pchar->height << endl;
-    char_avl.Print();
-    char_avl.Insert('F');
-    char_avl.Print();
-    char_avl.Delete('G');
-    char_avl.Delete('A');
-    char_avl.Print();
-    char_avl.Check();
-
-    const AVL_Node<int> *pint = int_avl.Find(3);
-    cout <<"pint->value = " << pint->value << endl;
-    cout <<"pint->height = " << pint->height << endl;
+    AVL<int> int_avl(ints, ints + 15);
     int_avl.Print();
-    int_avl.Insert(11);
-    int_avl.Print();
-    int_avl.Delete(6);
-    int_avl.Delete(5);
-    int_avl.Delete(1);
-    int_avl.Delete(9);
-    int_avl.Print();
-    int_avl.Check();
-
+    int del;
+    for(int i = 0; i < 15; ++i) {
+        cout<<"please enter the number you want to delete"<<endl;
+        cin >> del;
+        if(del == -1) {
+            break;
+        }
+        int_avl.Delete(del);
+        int_avl.Print();
+    }
     return 0;
 }
