@@ -58,6 +58,7 @@ private:
     unsigned size(SBT_Node<T> * const &p) const;
     SBT_Node<T>* Max_Node(SBT_Node<T> *&p);
     SBT_Node<T>* Min_Node(SBT_Node<T> *&p);
+    void Maintain(SBT_Node<T> *&p, bool flag);
     void SBT_Left_Rotate(SBT_Node<T> *&p);
     void SBT_Right_Rotate(SBT_Node<T> *&p);
     void SBT_Left_Right_Rotate(SBT_Node<T> *&p);
@@ -153,26 +154,15 @@ void SBT<T>::Insert(const T& value, SBT_Node<T> *&p) {
     if(p == NULL) {
         p = new SBT_Node<T>(value);
         ++num;
-    } else if(value < p->value) {
-        Insert(value, p->left);
-        if(size(p->left->left) > size(p->right)) {
-            // case 1: left -- left > right
-            SBT_Right_Rotate(p);
-        } else if(size(p->left->right) > size(p->right)) {
-            // case 3: left -- right > right
-            SBT_Left_Right_Rotate(p);
-        }
     } else {
-        Insert(value, p->right);
-        if(size(p->right->right) > size(p->left)) {
-            // case 2: right -- right > left
-            SBT_Left_Rotate(p);
-        } else if(size(p->right->left) > size(p->left)) {
-            // case 4: right -- left > left
-            SBT_Right_Left_Rotate(p);
+        if(value < p->value) {
+            Insert(value, p->left);
+        } else {
+            Insert(value, p->right);
         }
+        p->sz = size(p->left) + size(p->right) + 1;
+        Maintain(p, value > p->value);
     }
-    p->sz = size(p->left) + size(p->right) + 1;
 }
 
 template<class T>
@@ -191,10 +181,14 @@ void SBT<T>::Delete(const T& value, SBT_Node<T> *&p) {
                 SBT_Node<T> *q = Max_Node(p->left);
                 p->value = q->value;
                 Delete(p->value, p->left);
+                p->sz = size(p->left) + size(p->right) + 1;
+                Maintain(p, true);
             } else {
                 SBT_Node<T> *q = Min_Node(p->right);
                 p->value = q->value;
                 Delete(p->value, p->right);
+                p->sz = size(p->left) + size(p->right) + 1;
+                Maintain(p, false);
             }
         } else {
             SBT_Node<T> *q = p;
@@ -205,28 +199,16 @@ void SBT<T>::Delete(const T& value, SBT_Node<T> *&p) {
             }
             delete q;
             --num;
-            return;
-        }
-    } else if(value < p->value) {
-        Delete(value, p->left);
-        if(p->right && size(p->right->right) > size(p->left)) {
-            // delete case 2: right -- right > left
-            SBT_Left_Rotate(p);
-        } else if(p->right && size(p->right->left) > size(p->left)) {
-            // case 4: right -- left > right
-            SBT_Right_Left_Rotate(p);
         }
     } else {
-        Delete(value, p->right);
-        if(p->left && size(p->left->left) > size(p->right)) {
-            // delete case 1: left -- left > right
-            SBT_Right_Rotate(p);
-        } else if(p->left && size(p->left->right) > size(p->right)) {
-            // case 3: left -- right > right
-            SBT_Left_Right_Rotate(p);
+        if(value < p->value) {
+            Delete(value, p->left);
+        } else {
+            Delete(value, p->right);
         }
+        p->sz = size(p->left) + size(p->right) + 1;
+        Maintain(p, value < p->value);
     }
-    p->sz = size(p->left) + size(p->right) + 1;
 }
 
 template<class T>
@@ -299,12 +281,50 @@ SBT_Node<T>* SBT<T>::Min_Node(SBT_Node<T> *&p) {
 }
 
 template<class T>
+void SBT<T>::Maintain(SBT_Node<T> *&p, bool flag) {
+    if(p == NULL) {
+        return;
+    }
+    if(!flag) {
+        if(p->left) {
+            if(size(p->left->left) > size(p->right)) {
+                SBT_Right_Rotate(p);
+                Maintain(p->right, true);
+                Maintain(p, false);
+                Maintain(p, true);
+            } else if(size(p->left->right) > size(p->right)) {
+                SBT_Left_Right_Rotate(p);
+                Maintain(p->left, false);
+                Maintain(p->right, true);
+                Maintain(p, false);
+                Maintain(p, true);
+            }
+        }
+    } else {
+        if(p->right) {
+            if(size(p->right->right) > size(p->left)) {
+                SBT_Left_Rotate(p);
+                Maintain(p->left, false);
+                Maintain(p, false);
+                Maintain(p, true);
+            } else if(size(p->right->left) > size(p->left)) {
+                SBT_Right_Left_Rotate(p);
+                Maintain(p->left, false);
+                Maintain(p->right, true);
+                Maintain(p, false);
+                Maintain(p, true);
+            }
+        }
+    }
+}
+
+template<class T>
 void SBT<T>::SBT_Left_Rotate(SBT_Node<T> *&p) {
     SBT_Node<T> *tmp = p->right;
     p->right = tmp->left;
     tmp->left = p;
+    tmp->sz = p->sz;
     p->sz = size(p->left) + size(p->right) + 1;
-    tmp->sz = size(tmp->left) + size(tmp->right) + 1;
     p = tmp;
 }
 
@@ -313,8 +333,8 @@ void SBT<T>::SBT_Right_Rotate(SBT_Node<T> *&p) {
     SBT_Node<T> *tmp = p->left;
     p->left = tmp->right;
     tmp->right = p;
+    tmp->sz = p->sz;
     p->sz = size(p->left) + size(p->right) + 1;
-    tmp->sz = size(tmp->left) + size(tmp->right) + 1;
     p = tmp;
 }
 
