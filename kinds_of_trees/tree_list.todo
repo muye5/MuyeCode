@@ -3,13 +3,13 @@
 笛卡尔树
 Top树
 T树
-AVL树
+*AVL树
 红黑树
 B树
 B+树
 B-树
 *Treap
-splay树
+*Splay树
 线段树
 划分树
 树状数组
