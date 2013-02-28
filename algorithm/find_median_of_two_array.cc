@@ -96,7 +96,7 @@ int main(int argc, char **argv) {
         if(find_median(A, 0, lena-1, B, 0, lenb-1) != C[key]) {
             cerr << "=================== Error ===================" << endl;
             cerr << "C[0:" << lenb+lena-1 << "] ";
-            print(C, 0, lenb+lena-1, cerr);
+            print(C, 0, lenb+lena-1);
             cerr << "lena = " << lena << endl;
             cerr << "lenb = " << lenb << endl;
             cerr << "Wrong : " << find_median(A, 0, lena-1, B, 0, lenb-1) << endl;
