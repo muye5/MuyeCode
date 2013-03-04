@@ -1,6 +1,6 @@
 // Copyright (c) 2012 Tencent Inc.
 // Author: Muye (muyepiaozhou@gmail.com)
-// 并查集基础题目
+// 并查集
 // http://poj.org/problem?id=2524
 
 #include <cstdio>
