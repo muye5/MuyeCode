@@ -73,14 +73,15 @@
 #include <cstring>
 #include <vector>
 #include <algorithm>
+#include <cstdlib>
+#include <ctime>
 using namespace std;
 
-void suffix_init(string s) {
+void suffix_rank(const string &s, vector<int> &rank, vector<int> &sa) {
     int sum[26];
     memset(sum, 0, sizeof(sum));
-
     int len = s.length();
-    vector<int> rank;
+    rank.clear();
     rank.resize(len);
     // rank数组作为字符串代表,这里求出它的初始值
     for(int i = 0; i < len; ++i) {
@@ -92,7 +93,7 @@ void suffix_init(string s) {
     for(int i = 1; i < 26; ++i) {
         sum[i] += sum[i-1];
     }
-    vector<int> sa;
+    sa.clear();
     sa.resize(len);
     //计数排序(从后至前:稳定排序)
     for(int i = len - 1; i >= 0; --i) {
@@ -164,22 +165,123 @@ void suffix_init(string s) {
         j <<= 1;
         m = p;
     }
-    /* 打印结果 */
-    cout << s << endl;
-    for(int i = 0; i < len; ++i) {
-        cout << i << " : " << s.substr(sa[i]) << endl;
+}
+
+void suffix_height(const string &s, const vector<int> &rank, const vector<int> &sa, vector<int> &height) {
+    height.clear();
+    height.resize(rank.size());
+    int k = 0, j = 0;
+    for(size_t i = 0; i < rank.size(); ++i) {
+        if(rank[i] == 0) {
+            height[rank[i]] = 0;
+            continue;
+        }
+        j = sa[rank[i]-1];
+        while(s[i+k] == s[j+k]) ++k;
+        height[rank[i]] = k;
+        if(k > 0) --k;
     }
-    cout << endl;
-    for(int i = 0; i < len; ++i) {
-        cout << rank[i] << " = " << s.substr(i) << endl;
+}
+
+void suffix_lcp_init(const string &s, const vector<int> &height, vector<int> &mm, vector<vector<int> > &best) {
+    int len = s.size();
+    mm.clear();
+    mm.resize(len+1);
+    mm[0] = -1;
+    for(int i = 1; i <= len; ++i) {
+        if((i & (i-1)) == 0) {
+            mm[i] = mm[i-1] + 1;
+        } else {
+            mm[i] = mm[i-1];
+        }
     }
-    cout << endl;
-    /*  */
+    best.clear();
+    for(int i = 0; i <= mm[len]; ++i) {
+        best.push_back(vector<int>());
+        best.back().resize(len);
+    }
+    // best[i][j]代表[j~j+(2^i)-1]范围内的height最小值索引
+    // 长度为1时的初始情形
+    for(int j = 0; j < len; ++j) {
+        best[0][j] = j; // j代表的是最小值的索引
+    }
+    // 范围长度为2~2^[log(len)]的情形
+    for(int i = 1; i <= mm[len]; ++i) { // i 代表长度指数2^i
+        for(int j = 0; j <= len - (1<<i); ++j) { // j 代表子串的起始索引位置
+            int a = best[i-1][j];
+            int b = best[i-1][j+(1<<(i-1))];
+            if(height[a] > height[b])
+                best[i][j] = b;
+            else
+                best[i][j] = a;
+        }
+    }
+}
+
+int longest_common_prefix(const int &a, const int &b, const vector<int> &height, const vector<int> &mm, const vector<vector<int> > &best) {
+    int t = mm[b-a+1];
+    int k = b - (1 << t) + 1;
+    return min(height[best[t][a]], height[best[t][k]]);
 }
 
 int main(int argc, char **argv) {
     string s("aabbccaa");
-    suffix_init(s);
+    vector<int> rank, sa, height, mm;
+    vector<vector<int> > best;
+
+    suffix_rank(s, rank, sa);
+    suffix_height(s, rank, sa, height);
+    suffix_lcp_init(s, height, mm, best);
+    /* LCP */
+    cout << "string : " << s << endl;
+    int len = s.length();
+    srand((unsigned)time(NULL));
+    for(int i = 0; i < 10000; ++i) {
+        int a = rank[rand() % len];
+        int b = rank[rand() % len];
+        if(a == b) continue;
+        if(a > b) {
+            swap(a, b);
+        }
+        cout << "*********************************************************" << endl;
+        cout << "suffix[" << sa[a] << "] : " << s.substr(sa[a]) << endl;
+        cout << "suffix[" << sa[b] << "] : " << s.substr(sa[b]) << endl;
+        int lcp = longest_common_prefix(a+1, b, height, mm, best);
+        cout << "lcp = " << lcp << endl;
+        cout << "lcp[" << sa[a] << ":" << sa[b] << "] = " << s.substr(sa[a], lcp) << endl;
+        cout << "=========================================================" << endl;
+        /* assert */
+        int num = 0;
+        for(int j = sa[a], k = sa[b]; j < len && k < len; ++j, ++k) {
+            if(s[j] == s[k]) ++num;
+            else break;
+        }
+        if(num != lcp) {
+            cout << "Wrong Ansert" << endl;
+            exit(-1);
+        }
+    }
+    /* 打印结果 */
+    cout << "[sa:rank:height]" << endl;
+    for(size_t i = 0; i < s.length(); ++i) {
+        cout << "[" << i << ":" << sa[i] << ":" << height[i] << "] " << s.substr(sa[i]) << endl;
+    }
+    cout << endl;
+    cout << "mm : ";
+    for(size_t i = 0; i < mm.size(); ++i) {
+        cout << "[" << i << ":" << mm[i] << "] ";
+    }
+    cout << endl;
+    cout << "best :" << endl;
+    for(size_t i = 0; i < best.size(); ++i) {
+        cout << i << " : ";
+        for(size_t j = 0; j < best[i].size(); ++j) {
+            cout << best[i][j] << " ";
+        }
+        cout << endl;
+    }
+    cout << endl;
+    /*  */
     return 0;
 }
 
