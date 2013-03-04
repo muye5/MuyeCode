@@ -1,6 +1,6 @@
 // Copyright (c) 2012 Tencent Inc.
 // Author: Muye (muyepiaozhou@gmail.com)
-// ²¢²é¼¯
+// disjoin
 // http://poj.org/problem?id=2524
 
 #include <cstdio>
