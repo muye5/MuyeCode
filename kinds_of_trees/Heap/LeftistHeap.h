@@ -3,10 +3,12 @@
 
 #ifndef LEFTISTHEAP_H_
 #define LEFTISTHEAP_H_
+#include <stdexcept>
+
 template<typename Comparable>
 class LeftistHeap {
 public:
-    LististHeap();
+    LeftistHeap();
     LeftistHeap(const LeftistHeap& rhs);
     ~LeftistHeap();
 
@@ -40,5 +42,6 @@ private:
     void reclaimMemory(LeftistNode* t);
     LeftistNode* clone(LeftistNode* t) const;
 };
+#include "LeftistHeap.cc"
 #endif  // LEFTISTHEAP_H_
 
