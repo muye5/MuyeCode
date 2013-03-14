@@ -1,5 +1,10 @@
 // Copyright (c) 2013 default
 // Author: Muye (muyepiaozhou@gmail.com)
+// Tarjain算法用来查找最近祖先
+// 可用于大量查询
+// 参考
+// http://scturtle.is-programmer.com/posts/30055
+// http://dongxicheng.org/structure/lca-rmq/
 
 #include <iostream>
 #include <vector>
