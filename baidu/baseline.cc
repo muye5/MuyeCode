@@ -106,6 +106,7 @@ void BaseLine::Predict(const string& path, const string& result) {
         if(itc != customers.end()) rate += itc->second->bu;
         if(itm != movies.end()) rate += itm->second->bi;
         if(rate < 1.0) rate = 1.0;
+        if(rate > 5.0) rate = 5.0;
         ofs << setprecision(2) << rate << endl;
     }
     ifs.close();
