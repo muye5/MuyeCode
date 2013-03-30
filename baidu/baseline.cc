@@ -3,7 +3,7 @@
 
 #include "baseline.h"
 #include <cmath>
-#include <climits>
+#include <iomanip>
 
 BaseLine::BaseLine() : numMovie(0), numCust(0), aveRate(0.0) {
     dataset.reserve(ENTRIES);
@@ -68,39 +68,45 @@ void BaseLine::LoadData(const string& path) {
 }
 
 void BaseLine::Train() {
-    double minerr = INT_MAX, err = 0.0;
-    int x = 0, y = 0;
-    for(int i = 5; i < 50; i += 5) {
-        for(int j = 5; j < 50; j += 5) {
-            next1(i, j);
-            err = CalcError();
-            if(fabs(err) < minerr) {
-                minerr = fabs(err);
-                x = i;
-                y = j;
-            }
-            cout << "err = " << err << endl;
+}
+
+void BaseLine::GradientDesc() {
+    double err1 = CalcError(), err2 = 0.0, step = 0.0;
+    Movie* pmovie = NULL;
+    Customer* pcustomer = NULL;
+    while(fabs(err1 - err2) > DIFF) {
+        err2 = err1;
+        step = BestStep();
+        // update bu && bi
+        for(map<int, Movie*>::iterator it = movies.begin(); it != movies.end(); ++it) {
+            pmovie = it->second;
+            pmovie->bi += step * (pmovie->sumbu - W * pmovie->bi);
         }
+        for(map<int, Customer*>::iterator it = customers.begin(); it != customers.end(); ++it) {
+            pcustomer = it->second;
+            pcustomer->bu += step * (pcustomer->sumbi - W * pcustomer->bu);
+        }
+        err1 = CalcError();
+        cout << "err = " << err1 << "\t==\tdiff = " << err1 - err2 << endl;
     }
-    next1(x, y);
-    cout << "minerr = " << minerr << endl;
 }
 
 void BaseLine::Predict(const string& path, const string& result) {
     ifstream ifs(path.data(), ifstream::in);
     ofstream ofs(result.data(), ofstream::out);
-    int custId, movieId, rate;
+    int custId, movieId;
+    double rate;
     map<int, Customer*>::iterator itc;
     map<int, Movie*>::iterator itm;
-    while(ifs.good()) {
-        ifs >> custId >> movieId;
+    while(ifs >> custId >> movieId) {
         ofs << custId << '\t' << movieId << '\t';
         itc = customers.find(custId);
         itm = movies.find(movieId);
         rate = aveRate;
         if(itc != customers.end()) rate += itc->second->bu;
         if(itm != movies.end()) rate += itm->second->bi;
-        ofs << (int)(rate + 0.5) << endl;
+        if(rate < 1.0) rate = 1.0;
+        ofs << setprecision(2) << rate << endl;
     }
     ifs.close();
     ofs.close();
@@ -136,32 +142,50 @@ void BaseLine::InitValue() {
     }
 }
 
-void BaseLine::next() {
-    double eui, bu, bi;
-    for(vector<Entry*>::iterator it = dataset.begin(); it != dataset.end(); ++it) {
-        bu = customers[(*it)->custId]->bu;
-        bi = movies[(*it)->movieId]->bi;
-        eui = (*it)->rate - aveRate - bu - bi;
-        customers[(*it)->custId]->bu = bu + R * (eui - P * bu);
-        movies[(*it)->movieId]->bi = bi + R * (eui - P * bi);
-    }
-}
-
-void BaseLine::next1(int x, int y) {
+double BaseLine::BestStep() {
+    double up = 0.0, up1 = 0.0, up2 = 0.0;
+    double down = 0.0, down1 = 0.0, down2 = 0.0;
+    double eui, sui;
+    // sum(bi)
     Movie* pmovie = NULL;
-    Customer* pcustomer = NULL;
     for(map<int, Movie*>::iterator it = movies.begin(); it != movies.end(); ++it) {
         pmovie = it->second;
-        pmovie->bi = (pmovie->rateSum - pmovie->rateCnt * aveRate) / (x + pmovie->rateCnt);
+        double tmp = 0.0;
+        for(vector<int>::iterator p = pmovie->users.begin(); p != pmovie->users.end(); ++p) {
+            tmp += customers.find(*p)->second->bu;
+        }
+        pmovie->sumbu = pmovie->rateSum - pmovie->rateCnt * aveRate - tmp - pmovie->rateCnt * pmovie->bi;
+        eui = pmovie->sumbu - W * pmovie->bi;
+        up2 += pmovie->bi * eui;
+        down2 += pow(eui, 2);
     }
+    // sum(bu)
+    Customer* pcustomer = NULL;
     for(map<int, Customer*>::iterator it = customers.begin(); it != customers.end(); ++it) {
         pcustomer = it->second;
-        double sumbi = 0.0;
-        for(vector<int>::iterator t = pcustomer->items.begin(); t != pcustomer->items.end(); ++t) {
-            sumbi += movies.find(*t)->second->bi;
+        double tmp = 0.0;
+        for(vector<int>::iterator p = pcustomer->items.begin(); p != pcustomer->items.end(); ++p) {
+            tmp += movies.find(*p)->second->bi;
         }
-        pcustomer->bu = (pcustomer->rateSum - pcustomer->rateCnt * aveRate - sumbi) / (y + pcustomer->rateCnt);
+        pcustomer->sumbi = pcustomer->rateSum - pcustomer->rateCnt * aveRate - tmp - pcustomer->rateCnt * pcustomer->bu;
+        sui = pcustomer->sumbi - W * pcustomer->bu;
+        up2 += pcustomer->bu * sui;
+        down2 += pow(sui, 2);
     }
+    up2 *= W;
+    down2 *= W;
+    // best step
+    for(vector<Entry*>::iterator it = dataset.begin(); it != dataset.end(); ++it) {
+        pcustomer = customers[(*it)->custId];
+        pmovie = movies[(*it)->movieId];
+        eui = (*it)->rate - aveRate - pcustomer->bu - pmovie->bi;
+        sui = pcustomer->sumbi + pmovie->sumbu - W * (pcustomer->bu + pmovie->bi);
+        up1 += eui * sui;
+        down1 += pow(sui, 2);
+    }
+    up = up1 - up2;
+    down = down1 + down2;
+    return up / down;
 }
 
 double BaseLine::CalcError() {
@@ -176,6 +200,6 @@ double BaseLine::CalcError() {
         double tmp = (*it)->rate - aveRate - customers[(*it)->custId]->bu - movies[(*it)->movieId]->bi;
         err += pow(tmp, 2);
     }
-    return err + Z * (errbusq + errbisq);
+    return err + W * (errbusq + errbisq);
 }
 

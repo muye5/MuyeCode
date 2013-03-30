@@ -13,16 +13,8 @@
 using namespace std;
 
 #define ENTRIES 1300000
-#define CUSTOMERS 10000
-#define MOVIES 8000
-
-#define X 25
-#define Y 10
-#define Z 1
-#define DIFF 5
-
-#define R 0.005
-#define P 0.02
+#define DIFF 50000.0
+#define W 1.0
 
 struct Entry {
     int custId;
@@ -34,14 +26,18 @@ struct Customer {
     int rateCnt;
     int rateSum;
     double bu;
+    double sumbi;
     vector<int> items;
+    Customer() : rateCnt(0), rateSum(0), bu(0.0), sumbi(0.0) {}
 };
 
 struct Movie {
     int rateCnt;
     int rateSum;
     double bi;
+    double sumbu;
     vector<int> users;
+    Movie() : rateCnt(0), rateSum(0), bi(0.0), sumbu(0.0) {}
 };
 
 class BaseLine {
@@ -50,12 +46,12 @@ public:
     ~BaseLine();
     void LoadData(const string& path);
     void Train();
+    void GradientDesc();
     void Predict(const string& path, const string& result);
     void Save(const string& path) const;
 private:
     void InitValue();
-    void next();
-    void next1(int x, int y);
+    double BestStep();
     double CalcError();
 private:
     int numMovie;

@@ -8,7 +8,7 @@ int main(int argc, char **argv) {
     cout << "LoadData..." << endl;
     base.LoadData("./training_set.txt");
     cout << "Train..." << endl;
-    base.Train();
+    base.GradientDesc();
     cout << "Predict..." << endl;
     base.Predict("./predict.txt", "./result.txt");
     cout << "Save..." << endl;
