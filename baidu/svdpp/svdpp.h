@@ -23,12 +23,11 @@ public:
 
 class Customer {
 public:
-    Customer(int dimension) : rateCnt(0), rateSum(0), bu(0.0) {
-        pu.resize(dimension)
-    }
+    Customer() : rateCnt(0), rateSum(0), bu(0.0) {}
 public:
     vector<double> pu;
-    vector<int> items;
+    vector<int> rates;
+    vector<int> imfdbk;
     int rateCnt;
     int rateSum;
     double bu;
@@ -36,12 +35,8 @@ public:
 
 class Movie {
 public:
-    Movie(int dimension) : rateCnt(0), rateSum(0), bi(0.0), sumbu(0.0) {
-        yi.resize(dimension);
-        qi.resize(dimension);
-    }
+    Movie() : rateCnt(0), rateSum(0), bi(0.0), sumbu(0.0) {}
 public:
-    vector<double> yi;
     vector<double> qi;
     vector<int> users;
     int rateCnt;
@@ -49,28 +44,37 @@ public:
     double bi;
 };
 
+class FeedBack {
+public:
+    vector<double> yj;
+};
+
 class SVDPP {
 public:
-    SVDPP();
+    SVDPP(int dimension);
     ~SVDPP();
     void TrainDataLoad(const string& path);
     void ProbeDataLoad(const string& path);
+    void ImplicitDataLoad(const string& path);
     void Train(int maxloops, int dimension, double alpha1, double alpha2, double beta1, double beta2);
     void Predict(const string& path, const string& result);
     void Save(const string& path, const string& result) const;
 private:
-    void InitValue();
     void InitBais(); // initialize bu bi
     void InitPQ(); // initialize pu qi yj
-    double CalcError();
+    void SetRand(vector<double>& v);
+    double CalError();
     double predict(int dimension, int uid, int iid);
 private:
+    int dim;
     int numMovie;
     int numCust;
     double mean;
     vector<Entry*> datas;
+    vector<Entry*> probes;
     map<int, Customer*> customers;
     map<int, Movie*> movies;
+    map<int, FeedBack*> fdbks;
 };
 #endif  // SVDPLUSPLUS_H_
 

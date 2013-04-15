@@ -3,73 +3,93 @@
 
 #include "svdpp.h"
 #include <cmath>
+#include <ctime>
+#include <cstdlib>
 #include <iomanip>
 
-SVDPP::SVDPP() : numMovie(0), numCust(0), aveRate(0.0) {
-    datas.reserve(ENTRIES);
-}
+SVDPP::SVDPP(int dimension) : dim(dimension), numMovie(0), numCust(0), mean(0.0) {}
 
 SVDPP::~SVDPP() {
-    for(vector<Entry*>::iterator it = datas.begin(); it != datas.end(); ++it) {
-        delete *it;
-    }
-    for(map<int, Customer*>::iterator it = customers.begin(); it != customers.end(); ++it) {
-        delete it->second;
-    }
-    for(map<int, Movie*>::iterator it = movies.begin(); it != movies.end(); ++it) {
-        delete it->second;
-    }
+    for(vector<Entry*>::iterator it = datas.begin(); it != datas.end(); ++it) delete *it;
+    for(map<int, Customer*>::iterator it = customers.begin(); it != customers.end(); ++it) delete it->second;
+    for(map<int, Movie*>::iterator it = movies.begin(); it != movies.end(); ++it) delete it->second;
+    for(map<int, FeedBack*>::iterator it = fdbks.begin(); it != fdbks.end(); ++it) delete it->second;
 }
 
-void SVDPP::LoadData(const string& path) {
+void SVDPP::TrainDataLoad(const string& path) {
     ifstream ifs(path.data(), ifstream::in);
     Customer* pc = NULL;
     Movie* pm = NULL;
     int cid, mid;
     double drate;
-    aveRate = 0.0;
+    mean = 0.0;
     while(ifs >> cid >> mid >> drate) {
         Entry* entry = new Entry(cid, mid, drate);
         // user entry
-        if(customers.find(entry->custId) != customers.end()) {
-            pc = customers[entry->custId];
-            pc->rateSum += entry->rate;
+        if(customers.find(cid) != customers.end()) {
+            pc = customers[cid];
+            pc->rateSum += drate;
             ++(pc->rateCnt);
-            pc->items.push_back(entry->movieId);
+            pc->rates.push_back(mid);
         } else {
             pc = new Customer();
-            pc->rateSum = entry->rate;
+            pc->rateSum = drate;
             pc->rateCnt = 1;
-            pc->items.push_back(entry->movieId);
-            customers.insert(make_pair<int, Customer*>(entry->custId, pc));
+            pc->rates.push_back(mid);
+            customers.insert(make_pair<int, Customer*>(cid, pc));
         }
         // movie entry
-        if(movies.find(entry->movieId) != movies.end()) {
-            pm = movies[entry->movieId];
-            pm->rateSum += entry->rate;
+        if(movies.find(mid) != movies.end()) {
+            pm = movies[mid];
+            pm->rateSum += drate;
             ++(pm->rateCnt);
-            pm->users.push_back(entry->custId);
-
+            pm->users.push_back(cid);
         } else {
             pm = new Movie();
-            pm->rateSum = entry->rate;
+            pm->rateSum = drate;
             pm->rateCnt = 1;
-            pm->users.push_back(entry->custId);
-            movies.insert(make_pair<int, Movie*>(entry->movieId, pm));
+            pm->users.push_back(cid);
+            movies.insert(make_pair<int, Movie*>(mid, pm));
         }
         // average rate
-        aveRate += entry->rate;
+        mean += drate;
         datas.push_back(entry);
     }
     ifs.close();
     numCust = customers.size();
     numMovie = movies.size();
-    aveRate /= datas.size();
-    InitValue();
-    cout << "average rate is " << aveRate << endl;
+    mean /= datas.size();
 }
 
-void SVDPP::Train() {
+void SVDPP::ProbeDataLoad(const string& path) {
+    ifstream ifs(path.data(), ifstream::in);
+    int cid, mid;
+    double drate;
+    while(ifs >> cid >> mid >> drate) {
+        Entry* entry = new Entry(cid, mid, drate);
+        probes.push_back(entry);
+    }
+    ifs.close();
+}
+
+void SVDPP::ImplicitDataLoad(const string& path) {
+    ifstream ifs(path.data(), ifstream::in);
+    int mid;
+    FeedBack* fd = NULL;
+    while(ifs >> mid) {
+        fd = new FeedBack();
+        fdbks.insert(make_pair<int, FeedBack*>(mid, fd));
+    }
+    ifs.close();
+}
+
+void SVDPP::Train(int maxloops, int dimension, double alpha1, double alpha2, double beta1, double beta2) {
+    InitBais();
+    InitPQ();
+    double prmse, rmse;
+    for(int loop = 0; loop < maxloops; ++loop) {
+
+    }
 }
 
 void SVDPP::Predict(const string& path, const string& result) {
@@ -83,7 +103,7 @@ void SVDPP::Predict(const string& path, const string& result) {
         ofs << custId << '\t' << movieId << '\t';
         itc = customers.find(custId);
         itm = movies.find(movieId);
-        rate = aveRate;
+        rate = mean;
         if(itc != customers.end()) rate += itc->second->bu;
         if(itm != movies.end()) rate += itm->second->bi;
         if(rate < 1.0) rate = 1.0;
@@ -96,7 +116,7 @@ void SVDPP::Predict(const string& path, const string& result) {
 
 void SVDPP::Save(const string& path, const string& result) const {
     ofstream ofs(path.data(), ofstream::out);
-    ofs << aveRate << endl;
+    ofs << mean << endl;
     ofs << customers.size() << endl;
     for(map<int, Customer*>::const_iterator it = customers.begin(); it != customers.end(); ++it) {
         ofs << it->first << '\t'
@@ -123,27 +143,32 @@ void SVDPP::Save(const string& path, const string& result) const {
     rt.close();
 }
 
-void SVDPP::InitValue() {
+void SVDPP::InitBais() {
     for(map<int, Customer*>::iterator it = customers.begin(); it != customers.end(); ++it) {
-        it->second->bu = it->second->rateSum / it->second->rateCnt - aveRate;
+        it->second->bu = it->second->rateSum / it->second->rateCnt - mean;
     }
     for(map<int, Movie*>::iterator it = movies.begin(); it != movies.end(); ++it) {
-        it->second->bi = it->second->rateSum / it->second->rateCnt - aveRate;
+        it->second->bi = it->second->rateSum / it->second->rateCnt - mean;
     }
 }
 
-double SVDPP::CalcError() {
-    double errbusq = 0.0, errbisq=0.0, err = 0.0;
-    for(map<int, Customer*>::const_iterator it = customers.begin(); it != customers.end(); ++it) {
-        errbusq += pow(it->second->bu, 2);
-    }
-    for(map<int, Movie*>::const_iterator it = movies.begin(); it != movies.end(); ++it) {
-        errbisq += pow(it->second->bi, 2);
-    }
-    for(vector<Entry*>::const_iterator it = datas.begin(); it != datas.end(); ++it) {
-        double tmp = (*it)->rate - aveRate - customers.find((*it)->custId)->second->bu - movies.find((*it)->movieId)->second->bi;
-        err += pow(tmp, 2);
-    }
-    return err + W * (errbusq + errbisq);
+void SVDPP::InitPQ() {
+    srand((unsigned)time(NULL));
+
+    map<int, Customer*>::iterator itu = customers.begin();
+    for(; itu != customers.end(); ++itu) SetRand(itu->second->pu);
+
+    map<int, Movie*>::iterator itm = movies.begin();
+    for(; itm != movies.end(); ++itm) SetRand(itm->second->qi);
+}
+
+void SVDPP::SetRand(vector<double>& v) {
+    v.clear();
+    v.resize(dim);
+    double d = sqrt(dim);
+    for(int i = 0; i < dim; ++i) v[i] = 0.1 * (rand() / (double)RAND_MAX) / d;
+}
+
+double SVDPP::CalError() {
 }
 
