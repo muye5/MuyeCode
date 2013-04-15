@@ -22,13 +22,14 @@ BaseLine::~BaseLine() {
 }
 
 void BaseLine::LoadData(const string& path) {
+    ifstream ifs(path.data(), ifstream::in);
     Customer* pc = NULL;
     Movie* pm = NULL;
-    ifstream ifs(path.data(), ifstream::in);
+    int cid, mid;
+    double drate;
     aveRate = 0.0;
-    while(ifs.good()) {
-        Entry* entry = new Entry();
-        ifs >> entry->custId >> entry->movieId >> entry->rate;
+    while(ifs >> cid >> mid >> drate) {
+        Entry* entry = new Entry(cid, mid, drate);
         // user entry
         if(customers.find(entry->custId) != customers.end()) {
             pc = customers[entry->custId];
@@ -64,6 +65,7 @@ void BaseLine::LoadData(const string& path) {
     numCust = customers.size();
     numMovie = movies.size();
     aveRate /= dataset.size();
+    InitValue();
     cout << "average rate is " << aveRate << endl;
 }
 
@@ -106,18 +108,18 @@ void BaseLine::Predict(const string& path, const string& result) {
         if(itc != customers.end()) rate += itc->second->bu;
         if(itm != movies.end()) rate += itm->second->bi;
         if(rate < 1.0) rate = 1.0;
+        if(rate > 5.0) rate = 5.0;
         ofs << setprecision(2) << rate << endl;
     }
     ifs.close();
     ofs.close();
 }
 
-void BaseLine::Save(const string& path) const {
+void BaseLine::Save(const string& path, const string& result) const {
     ofstream ofs(path.data(), ofstream::out);
     ofs << aveRate << endl;
     ofs << customers.size() << endl;
     for(map<int, Customer*>::const_iterator it = customers.begin(); it != customers.end(); ++it) {
-        it->second->bu = it->second->rateSum / it->second->rateCnt - aveRate;
         ofs << it->first << '\t'
             << it->second->rateCnt << '\t'
             << it->second->rateSum << '\t'
@@ -131,6 +133,15 @@ void BaseLine::Save(const string& path) const {
             << it->second->bi << endl;
     }
     ofs.close();
+
+    ofstream rt(result.data(), ofstream::out);
+    for(vector<Entry*>::const_iterator it = dataset.begin(); it != dataset.end(); ++it) {
+        rt << (*it)->custId << '\t'
+           << (*it)->rate << '\t'
+           << customers.find((*it)->custId)->second->bu << '\t'
+           << movies.find((*it)->movieId)->second->bi << endl;
+    }
+    rt.close();
 }
 
 void BaseLine::InitValue() {
@@ -197,7 +208,7 @@ double BaseLine::CalcError() {
         errbisq += pow(it->second->bi, 2);
     }
     for(vector<Entry*>::const_iterator it = dataset.begin(); it != dataset.end(); ++it) {
-        double tmp = (*it)->rate - aveRate - customers[(*it)->custId]->bu - movies[(*it)->movieId]->bi;
+        double tmp = (*it)->rate - aveRate - customers.find((*it)->custId)->second->bu - movies.find((*it)->movieId)->second->bi;
         err += pow(tmp, 2);
     }
     return err + W * (errbusq + errbisq);

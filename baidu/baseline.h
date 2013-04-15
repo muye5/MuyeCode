@@ -13,13 +13,14 @@
 using namespace std;
 
 #define ENTRIES 1300000
-#define DIFF 50000.0
-#define W 1.0
+#define DIFF 0.5
+#define W 10
 
 struct Entry {
     int custId;
     int movieId;
     double rate;
+    Entry(int c, int m, double r) : custId(c), movieId(m), rate(r) {}
 };
 
 struct Customer {
@@ -48,7 +49,7 @@ public:
     void Train();
     void GradientDesc();
     void Predict(const string& path, const string& result);
-    void Save(const string& path) const;
+    void Save(const string& path, const string& result) const;
 private:
     void InitValue();
     double BestStep();

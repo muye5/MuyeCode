@@ -12,7 +12,7 @@ int main(int argc, char **argv) {
     cout << "Predict..." << endl;
     base.Predict("./predict.txt", "./result.txt");
     cout << "Save..." << endl;
-    base.Save("./argu.txt");
+    base.Save("./argu.txt", "./check.txt");
     cout << "Over" << endl;
     return 0;
 }
