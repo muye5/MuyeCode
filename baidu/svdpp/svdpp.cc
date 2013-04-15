@@ -1,16 +1,16 @@
 // Copyright (c) 2013
 // Author: Muye (muyepiaozhou@gmail.com)
 
-#include "baseline.h"
+#include "svdpp.h"
 #include <cmath>
 #include <iomanip>
 
 SVDPP::SVDPP() : numMovie(0), numCust(0), aveRate(0.0) {
-    dataset.reserve(ENTRIES);
+    datas.reserve(ENTRIES);
 }
 
 SVDPP::~SVDPP() {
-    for(vector<Entry*>::iterator it = dataset.begin(); it != dataset.end(); ++it) {
+    for(vector<Entry*>::iterator it = datas.begin(); it != datas.end(); ++it) {
         delete *it;
     }
     for(map<int, Customer*>::iterator it = customers.begin(); it != customers.end(); ++it) {
@@ -59,12 +59,12 @@ void SVDPP::LoadData(const string& path) {
         }
         // average rate
         aveRate += entry->rate;
-        dataset.push_back(entry);
+        datas.push_back(entry);
     }
     ifs.close();
     numCust = customers.size();
     numMovie = movies.size();
-    aveRate /= dataset.size();
+    aveRate /= datas.size();
     InitValue();
     cout << "average rate is " << aveRate << endl;
 }
@@ -114,7 +114,7 @@ void SVDPP::Save(const string& path, const string& result) const {
     ofs.close();
 
     ofstream rt(result.data(), ofstream::out);
-    for(vector<Entry*>::const_iterator it = dataset.begin(); it != dataset.end(); ++it) {
+    for(vector<Entry*>::const_iterator it = datas.begin(); it != datas.end(); ++it) {
         rt << (*it)->custId << '\t'
            << (*it)->rate << '\t'
            << customers.find((*it)->custId)->second->bu << '\t'
@@ -140,7 +140,7 @@ double SVDPP::CalcError() {
     for(map<int, Movie*>::const_iterator it = movies.begin(); it != movies.end(); ++it) {
         errbisq += pow(it->second->bi, 2);
     }
-    for(vector<Entry*>::const_iterator it = dataset.begin(); it != dataset.end(); ++it) {
+    for(vector<Entry*>::const_iterator it = datas.begin(); it != datas.end(); ++it) {
         double tmp = (*it)->rate - aveRate - customers.find((*it)->custId)->second->bu - movies.find((*it)->movieId)->second->bi;
         err += pow(tmp, 2);
     }

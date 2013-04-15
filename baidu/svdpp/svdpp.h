@@ -2,8 +2,8 @@
 // Author: Muye (muyepiaozhou@gmail.com)
 
 
-#ifndef BASELINE_H_
-#define BASELINE_H_
+#ifndef SVDPLUSPLUS_H_
+#define SVDPLUSPLUS_H_
 
 #include <iostream>
 #include <fstream>
@@ -12,54 +12,65 @@
 #include <map>
 using namespace std;
 
-#define ENTRIES 1300000
-#define DIFF 0.5
-#define W 10
-
-struct Entry {
+class Entry {
+public:
+    Entry(int c, int m, double r = 0.0) : custId(c), movieId(m), rate(r) {}
+public:
     int custId;
     int movieId;
     double rate;
-    Entry(int c, int m, double r = 0.0) : custId(c), movieId(m), rate(r) {}
 };
 
-struct Customer {
+class Customer {
+public:
+    Customer(int dimension) : rateCnt(0), rateSum(0), bu(0.0) {
+        pu.resize(dimension)
+    }
+public:
+    vector<double> pu;
+    vector<int> items;
     int rateCnt;
     int rateSum;
     double bu;
-    vector<int> items;
-    Customer() : rateCnt(0), rateSum(0), bu(0.0) {}
 };
 
-struct Movie {
+class Movie {
+public:
+    Movie(int dimension) : rateCnt(0), rateSum(0), bi(0.0), sumbu(0.0) {
+        yi.resize(dimension);
+        qi.resize(dimension);
+    }
+public:
+    vector<double> yi;
+    vector<double> qi;
+    vector<int> users;
     int rateCnt;
     int rateSum;
     double bi;
-    vector<double> y;
-    vector<int> users;
-    Movie(int dimension) : rateCnt(0), rateSum(0), bi(0.0), sumbu(0.0) {
-        y.resize(dimension);
-    }
 };
 
 class SVDPP {
 public:
     SVDPP();
     ~SVDPP();
-    void LoadData(const string& path);
-    void Train();
+    void TrainDataLoad(const string& path);
+    void ProbeDataLoad(const string& path);
+    void Train(int maxloops, int dimension, double alpha1, double alpha2, double beta1, double beta2);
     void Predict(const string& path, const string& result);
     void Save(const string& path, const string& result) const;
 private:
     void InitValue();
+    void InitBais(); // initialize bu bi
+    void InitPQ(); // initialize pu qi yj
     double CalcError();
+    double predict(int dimension, int uid, int iid);
 private:
     int numMovie;
     int numCust;
-    double aveRate;
-    vector<Entry*> dataset;
+    double mean;
+    vector<Entry*> datas;
     map<int, Customer*> customers;
     map<int, Movie*> movies;
 };
-#endif  // BASELINE_H_
+#endif  // SVDPLUSPLUS_H_
 
