@@ -17,38 +17,38 @@ SVDPP::~SVDPP() {
 }
 
 void SVDPP::TrainDataLoad(const string& path) {
-    ifstream ifs(path.data(), ifstream::in);
     Customer* pc = NULL;
     Movie* pm = NULL;
     int cid, mid;
     double drate;
     mean = 0.0;
+    ifstream ifs(path.data(), ifstream::in);
+    map<int, Customer*>::iterator itu;
+    map<int, Movie*>::iterator itm;
     while(ifs >> cid >> mid >> drate) {
         Entry* entry = new Entry(cid, mid, drate);
         // user entry
-        if(customers.find(cid) != customers.end()) {
-            pc = customers[cid];
+        itu = customers.find(cid);
+        if(itu != customers.end()) {
+            pc = itu->second;
             pc->rateSum += drate;
             ++(pc->rateCnt);
-            pc->rates.push_back(mid);
         } else {
             pc = new Customer();
             pc->rateSum = drate;
             pc->rateCnt = 1;
-            pc->rates.push_back(mid);
             customers.insert(make_pair<int, Customer*>(cid, pc));
         }
         // movie entry
-        if(movies.find(mid) != movies.end()) {
-            pm = movies[mid];
+        itm = movies.find(mid);
+        if(itm != movies.end()) {
+            pm = itm->second;
             pm->rateSum += drate;
             ++(pm->rateCnt);
-            pm->users.push_back(cid);
         } else {
             pm = new Movie();
             pm->rateSum = drate;
             pm->rateCnt = 1;
-            pm->users.push_back(cid);
             movies.insert(make_pair<int, Movie*>(mid, pm));
         }
         // average rate
@@ -73,14 +73,22 @@ void SVDPP::ProbeDataLoad(const string& path) {
 }
 
 void SVDPP::ImplicitDataLoad(const string& path) {
+    map<int, Customer*>::iterator itu;
+    set<int> mids;
+    int cid, mid;
     ifstream ifs(path.data(), ifstream::in);
-    int mid;
-    FeedBack* fd = NULL;
-    while(ifs >> mid) {
-        fd = new FeedBack();
-        fdbks.insert(make_pair<int, FeedBack*>(mid, fd));
+    while(ifs >> cid >> mid) {
+        itu = customers.find(cid);
+        itu->second->imfdbk.push_back(mid);
+        mids.insert(mid);
     }
     ifs.close();
+    fdbks.clear();
+    FeedBack* fd = NULL;
+    for(set<int>::iterator it = mids.begin(); it != mids.end(); ++it) {
+        fd = new FeedBack();
+        fdbks.insert(make_pair<int, FeedBack*>(*it, fd));
+    }
 }
 
 void SVDPP::Train(int maxloops, int dimension, double alpha1, double alpha2, double beta1, double beta2) {
@@ -97,18 +105,12 @@ void SVDPP::Predict(const string& path, const string& result) {
     ofstream ofs(result.data(), ofstream::out);
     int custId, movieId;
     double rate;
-    map<int, Customer*>::iterator itc;
-    map<int, Movie*>::iterator itm;
     while(ifs >> custId >> movieId) {
         ofs << custId << '\t' << movieId << '\t';
-        itc = customers.find(custId);
-        itm = movies.find(movieId);
-        rate = mean;
-        if(itc != customers.end()) rate += itc->second->bu;
-        if(itm != movies.end()) rate += itm->second->bi;
+        rate = predict(custId, movieId);
         if(rate < 1.0) rate = 1.0;
         if(rate > 5.0) rate = 5.0;
-        ofs << setprecision(2) << rate << endl;
+        ofs << rate << endl;
     }
     ifs.close();
     ofs.close();
@@ -160,6 +162,9 @@ void SVDPP::InitPQ() {
 
     map<int, Movie*>::iterator itm = movies.begin();
     for(; itm != movies.end(); ++itm) SetRand(itm->second->qi);
+
+    map<int, FeedBack*>::iterator itf = fdbks.begin();
+    for(; itf != fdbks.end(); ++itf) SetRand(itf->second->yj);
 }
 
 void SVDPP::SetRand(vector<double>& v) {
@@ -170,5 +175,39 @@ void SVDPP::SetRand(vector<double>& v) {
 }
 
 double SVDPP::CalError() {
+    double rmse = 0.0, rate = 0.0;
+    vector<Entry*>::iterator it = probes.begin();
+    for(; it != probes.end(); ++it) {
+        rate = predict((*it)->custId, (*it)->movieId);
+        rmse += pow((*it)->rate - rate, 2);
+    }
+    return sqrt(rmse/probes.size());
 }
 
+double SVDPP::predict(int uid, int iid) {
+    map<int, Customer*>::iterator itu = customers.find(uid);
+    map<int, Movie*>::iterator itm = movies.find(iid);
+    if(itu == customers.end() || itm == movies.end()) {
+        cerr << "No Found: [" << uid << ", " << iid << "]" << endl;
+        exit(-1);
+    }
+
+    vector<double> tmp(dim, 0.0);
+    const vector<double>& pu = itu->second->pu;
+    const vector<int>& fd = itu->second->imfdbk;
+    const vector<double>& qi = itm->second->qi;
+    double ru = sqrt((double)fd.size());
+
+    for(vector<int>::const_iterator it = fd.begin(); it != fd.end(); ++it) {
+        const vector<double>& yj = fdbks[*it].yj;
+        for(int i = 0; i < dim; ++i) tmp[i] += yj[i];
+    }
+    for(int i = 0; i < dim; ++i) {
+        tmp[i] /= ru;
+        tmp[i] += pu[i];
+        tmp[i] *= qi[i];
+    }
+    double rate = mean + itu->second->bu + itm->second->bi;
+    for(int i = 0; i < dim; ++i) rate += tmp[i];
+    return rate;
+}

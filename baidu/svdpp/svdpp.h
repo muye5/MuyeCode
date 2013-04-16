@@ -26,7 +26,6 @@ public:
     Customer() : rateCnt(0), rateSum(0), bu(0.0) {}
 public:
     vector<double> pu;
-    vector<int> rates;
     vector<int> imfdbk;
     int rateCnt;
     int rateSum;
@@ -35,10 +34,9 @@ public:
 
 class Movie {
 public:
-    Movie() : rateCnt(0), rateSum(0), bi(0.0), sumbu(0.0) {}
+    Movie() : rateCnt(0), rateSum(0), bi(0.0) {}
 public:
     vector<double> qi;
-    vector<int> users;
     int rateCnt;
     int rateSum;
     double bi;
@@ -64,7 +62,7 @@ private:
     void InitPQ(); // initialize pu qi yj
     void SetRand(vector<double>& v);
     double CalError();
-    double predict(int dimension, int uid, int iid);
+    double predict(int uid, int iid);
 private:
     int dim;
     int numMovie;
