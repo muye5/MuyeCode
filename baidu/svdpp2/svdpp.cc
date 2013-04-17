@@ -19,6 +19,10 @@ void SVDPP::TrainDataLoad(const string& path) {
     double rate;
     mean = 0.0;
     ifstream ifs(path.data(), ifstream::in);
+    if(!ifs.is_open()) {
+        cout << path << " cann't be opened" << endl;
+        exit(-1);
+    }
     while(ifs >> cid >> mid >> rate) {
         ++num;
         mean += rate;
@@ -33,6 +37,10 @@ void SVDPP::ProbeDataLoad(const string& path) {
     ifstream ifs(path.data(), ifstream::in);
     int cid, mid;
     double rate;
+    if(!ifs.is_open()) {
+        cout << path << " cann't be opened" << endl;
+        exit(-1);
+    }
     while(ifs >> cid >> mid >> rate) {
         probes.push_back(ProbeEntry(cid, mid, rate));
     }
@@ -42,6 +50,10 @@ void SVDPP::ProbeDataLoad(const string& path) {
 void SVDPP::ImplicitDataLoad(const string& path) {
     int cid, mid;
     ifstream ifs(path.data(), ifstream::in);
+    if(!ifs.is_open()) {
+        cout << path << " cann't be opened" << endl;
+        exit(-1);
+    }
     while(ifs >> cid >> mid) {
         customers[cid].imfdbk.push_back(mid);
     }
@@ -49,11 +61,12 @@ void SVDPP::ImplicitDataLoad(const string& path) {
 }
 
 void SVDPP::Train(int maxloops, double alpha1, double alpha2, double beta1, double beta2) {
+    cout << "mean = " << mean << endl;
     cout << "initialize bais" << endl;
     InitBais();
     cout << "initialize P and Q" << endl;
     InitPQ();
-    double prmse = 100000000.0, rmse = 0.0;
+    long double prmse = 100000000000.0, rmse = 0.0;
     for(int loop = 0; loop < maxloops; ++loop) {
         rmse = 0.0;
         int numentries = 0;
@@ -75,7 +88,9 @@ void SVDPP::Train(int maxloops, double alpha1, double alpha2, double beta1, doub
                 double& bi = movies[itd->mid].bi;
                 double rui = mean + it->bu + bi;
                 vector<double>& qi = movies[itd->mid].qi;
-                for(int i = 0; i < dim; ++i) rui += tmp[i] * qi[i];
+                for(int i = 0; i < dim; ++i) {
+                    rui += tmp[i] * qi[i];
+                }
                 double eui = itd->rate - rui;
                 it->bu += alpha1 * (eui - beta1 * it->bu); // update bu
                 bi += alpha1 * (eui - beta1 * bi); // update bi
@@ -93,7 +108,7 @@ void SVDPP::Train(int maxloops, double alpha1, double alpha2, double beta1, doub
         }
         rmse = sqrt(rmse / numentries);
         if(loop > 3 && rmse > prmse) {
-            cout << "Over! rmse = " << prmse << "\tcalerror : " << CalError() << endl;
+            cout << "Over! rmse = " << rmse << "\tcalerror : " << CalError() << endl;
             break;
         }
         cout << "loop[" << loop << "]\trmse = " << rmse << "\tcalerror : " << CalError() << endl;
@@ -104,6 +119,10 @@ void SVDPP::Train(int maxloops, double alpha1, double alpha2, double beta1, doub
 void SVDPP::Predict(const string& path, const string& result) {
     ifstream ifs(path.data(), ifstream::in);
     ofstream ofs(result.data(), ofstream::out);
+    if(!ifs.is_open() || !ofs.is_open()) {
+        cout << "cann't open file" << endl;
+        exit(-1);
+    }
     int custId, movieId;
     double rate;
     while(ifs >> custId >> movieId) {
@@ -130,7 +149,6 @@ void SVDPP::InitBais() {
 
 void SVDPP::InitPQ() {
     srand((unsigned)time(NULL));
-
     for(vector<Customer>::iterator itu = ++customers.begin(); itu != customers.end(); ++itu) SetRand(itu->pu);
     for(vector<Movie>::iterator itm = ++movies.begin(); itm != movies.end(); ++itm) SetRand(itm->qi);
     for(vector<FeedBack>::iterator itf = ++fdbks.begin(); itf != fdbks.end(); ++itf) SetRand(itf->yj);

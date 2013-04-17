@@ -4,14 +4,13 @@
 #include "svdpp.h"
 
 int main(int argc, char **argv) {
-    int dimension = 10;
     int maxloops = 60;
     double alpha1 = 0.005;
     double alpha2 = 0.005;
     double beta1 = 0.005;
     double beta2 = 0.005;
 
-    SVDPP svdpp(dimension, 100, 100, 100);
+    SVDPP svdpp(50, 9722, 7889, 14632);
 
     cout << "Load Train Data..." << endl;
     svdpp.TrainDataLoad("./data/train.txt");
@@ -26,7 +25,7 @@ int main(int argc, char **argv) {
     svdpp.Train(maxloops, alpha1, alpha2, beta1, beta2);
 
     cout << "Begin Predict..." << endl;
-    svdpp.Predict("./data/predict.txt", "./out/result.txt");
+    svdpp.Predict("./data/pred.txt", "./data/rt.txt");
     return 0;
 }
 
