@@ -11,7 +11,7 @@ int main(int argc, char **argv) {
     double beta1 = 0.005;
     double beta2 = 0.005;
 
-    SVDPP svdpp(dimension);
+    SVDPP svdpp(dimension, 100, 100, 100);
 
     cout << "Load Train Data..." << endl;
     svdpp.TrainDataLoad("./data/train.txt");

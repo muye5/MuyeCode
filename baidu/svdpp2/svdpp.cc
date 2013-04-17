@@ -56,50 +56,42 @@ void SVDPP::Train(int maxloops, double alpha1, double alpha2, double beta1, doub
     double prmse = 100000000.0, rmse = 0.0;
     for(int loop = 0; loop < maxloops; ++loop) {
         rmse = 0.0;
+        int numentries = 0;
         for(vector<Customer>::iterator it = ++customers.begin(); it != customers.end(); ++it) {
-            const vector<double>& pu = it->pu;
-            const vector<int>& fd = it->imfdbk;
+            vector<double>& pu = it->pu;
+            vector<int>& fd = it->imfdbk;
             vector<double> tmp(dim, 0.0);
-            double rate = mean + pu[uid].bu + movies[iid].bi;
-            double ru = sqrt((double)fd.size());
             for(vector<int>::iterator itf = fd.begin(); itf != fd.end(); ++itf) {
-                const vector<double>& yj = fdbks[*itf].yj;
+                vector<double>& yj = fdbks[*itf].yj;
                 for(int i = 0; i < dim; ++i) tmp[i] += yj[i];
             }
+            double ru = sqrt((double)fd.size());
             for(int i = 0; i < dim; ++i) {
                 tmp[i] /= ru;
                 tmp[i] += pu[i];
-                rate += tmp[i] * qi[i];
             }
-            vector<double> tmp(dim, 0.0);
-            double eui = it->rate - predict(it->custId, it->movieId);
-            rmse += pow(eui, 2);
-            Customer* pc = customers[(*it)->custId];
-            Movie* pm = movies[(*it)->movieId];
-            pc->bu = pc->bu + alpha1 * (eui - beta1 * pc->bu);
-            pm->bi = pm->bi + alpha1 * (eui - beta1 * pm->bi);
-            vector<int>& fd = pc->imfdbk;
-            double r = sqrt((double)fd.size());
-            for(vector<int>::iterator ifd = fd.begin(); ifd != fd.end(); ++ifd) {
-                vector<double>& yj = fdbks[*ifd]->yj;
-                for(int i = 0; i < dim; ++i) {
-                    tmp[i] += yj[i];
-                    yj[i] += alpha2 * (eui * pm->qi[i] / r - beta2 * yj[i]);
+            vector<Entry>& rd = it->rated;
+            for(vector<Entry>::iterator itd = rd.begin(); itd != rd.end(); ++itd) {
+                double& bi = movies[itd->mid].bi;
+                double rui = mean + it->bu + bi;
+                vector<double>& qi = movies[itd->mid].qi;
+                for(int i = 0; i < dim; ++i) rui += tmp[i] * qi[i];
+                double eui = itd->rate - rui;
+                it->bu += alpha1 * (eui - beta1 * it->bu); // update bu
+                bi += alpha1 * (eui - beta1 * bi); // update bi
+                for(int i = 0; i < dim; ++i) pu[i] += alpha2 * (eui * qi[i] - beta2 * pu[i]); // update pu
+                for(vector<int>::iterator itf = fd.begin(); itf != fd.end(); ++itf) {
+                    vector<double>& yj = fdbks[*itf].yj;
+                    // update yj
+                    for(int i = 0; i < dim; ++i) yj[i] += alpha2 * (eui * qi[i] / ru - beta2 * yj[i]);
                 }
-            }
-            for(int i = 0; i < dim; ++i) {
-                tmp[i] /= r;
-                tmp[i] += eui * pc->pu[i];
-                tmp[i] -= beta2 * pm->qi[i];
-                tmp[i] = pm->qi[i] + alpha2 * tmp[i];
-            }
-            for(int i = 0; i < dim; ++i) pc->pu[i] += alpha2 * (eui * pm->qi[i] - beta2 * pc->pu[i]);
-            for(int i = 0; i < dim; ++i) pm->qi[i] = tmp[i];
-            if((it - datas.begin() + 1) % 10000 == 0) {
-                cout << "loop[" << loop << "] : " << it - datas.begin() + 1 << " entries done" << endl;
+                // update qi
+                for(int i = 0; i < dim; ++i) qi[i] += alpha2 * (eui * tmp[i] - beta2 * qi[i]);
+                ++numentries;
+                rmse += pow(eui, 2);
             }
         }
-        rmse = sqrt(rmse / datas.size());
+        rmse = sqrt(rmse / numentries);
         if(loop > 3 && rmse > prmse) {
             cout << "Over! rmse = " << prmse << "\tcalerror : " << CalError() << endl;
             break;
@@ -140,7 +132,7 @@ void SVDPP::InitPQ() {
     srand((unsigned)time(NULL));
 
     for(vector<Customer>::iterator itu = ++customers.begin(); itu != customers.end(); ++itu) SetRand(itu->pu);
-    for(vector<Movie>::iterator itm = ++movies.begin(); ; itm != movies.end(); ++itm) SetRand(itm->qi);
+    for(vector<Movie>::iterator itm = ++movies.begin(); itm != movies.end(); ++itm) SetRand(itm->qi);
     for(vector<FeedBack>::iterator itf = ++fdbks.begin(); itf != fdbks.end(); ++itf) SetRand(itf->yj);
 }
 
@@ -162,14 +154,14 @@ double SVDPP::CalError() {
 }
 
 double SVDPP::predict(const int& uid, const int& iid) {
-    const vector<double>& pu = customers[uid].pu;
-    const vector<double>& qi = movies[iid].qi;
-    const vector<int>& fd = customers[uid].imfdbk;
+    vector<double>& pu = customers[uid].pu;
+    vector<double>& qi = movies[iid].qi;
+    vector<int>& fd = customers[uid].imfdbk;
     vector<double> tmp(dim, 0.0);
-    double rate = mean + pu[uid].bu + movies[iid].bi;
+    double rate = mean + customers[uid].bu + movies[iid].bi;
     double ru = sqrt((double)fd.size());
     for(vector<int>::iterator it = fd.begin(); it != fd.end(); ++it) {
-        const vector<double>& yj = fdbks[*it].yj;
+        vector<double>& yj = fdbks[*it].yj;
         for(int i = 0; i < dim; ++i) tmp[i] += yj[i];
     }
     for(int i = 0; i < dim; ++i) {
