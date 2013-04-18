@@ -5,7 +5,6 @@
 #include <cmath>
 #include <ctime>
 #include <cstdlib>
-#include <iomanip>
 
 SVDPP::SVDPP(int dimension) : dim(dimension), numMovie(0), numCust(0), mean(0.0) {}
 
@@ -79,6 +78,9 @@ void SVDPP::ImplicitDataLoad(const string& path) {
     ifstream ifs(path.data(), ifstream::in);
     while(ifs >> cid >> mid) {
         itu = customers.find(cid);
+        if(itu == customers.end()) {
+            cerr << "Not found cid = " << cid << endl;
+        }
         itu->second->imfdbk.push_back(mid);
         mids.insert(mid);
     }
@@ -91,12 +93,50 @@ void SVDPP::ImplicitDataLoad(const string& path) {
     }
 }
 
-void SVDPP::Train(int maxloops, int dimension, double alpha1, double alpha2, double beta1, double beta2) {
+void SVDPP::Train(int maxloops, double alpha1, double alpha2, double beta1, double beta2) {
+    cout << "initialize bais" << endl;
     InitBais();
+    cout << "initialize P and Q" << endl;
     InitPQ();
-    double prmse, rmse;
+    double prmse = 100000000.0, rmse = 0.0;
     for(int loop = 0; loop < maxloops; ++loop) {
-
+        rmse = 0.0;
+        for(vector<Entry*>::iterator it = datas.begin(); it != datas.end(); ++it) {
+            double eui = (*it)->rate - predict((*it)->custId, (*it)->movieId);
+            rmse += pow(eui, 2);
+            Customer* pc = customers[(*it)->custId];
+            Movie* pm = movies[(*it)->movieId];
+            pc->bu = pc->bu + alpha1 * (eui - beta1 * pc->bu);
+            pm->bi = pm->bi + alpha1 * (eui - beta1 * pm->bi);
+            vector<double> tmp(dim, 0.0);
+            vector<int>& fd = pc->imfdbk;
+            double r = sqrt((double)fd.size());
+            for(vector<int>::iterator ifd = fd.begin(); ifd != fd.end(); ++ifd) {
+                vector<double>& yj = fdbks[*ifd]->yj;
+                for(int i = 0; i < dim; ++i) {
+                    tmp[i] += yj[i];
+                    yj[i] += alpha2 * (eui * pm->qi[i] / r - beta2 * yj[i]);
+                }
+            }
+            for(int i = 0; i < dim; ++i) {
+                tmp[i] /= r;
+                tmp[i] += eui * pc->pu[i];
+                tmp[i] -= beta2 * pm->qi[i];
+                tmp[i] = pm->qi[i] + alpha2 * tmp[i];
+            }
+            for(int i = 0; i < dim; ++i) pc->pu[i] += alpha2 * (eui * pm->qi[i] - beta2 * pc->pu[i]);
+            for(int i = 0; i < dim; ++i) pm->qi[i] = tmp[i];
+            if((it - datas.begin() + 1) % 10000 == 0) {
+                cout << "loop[" << loop << "] : " << it - datas.begin() + 1 << " entries done" << endl;
+            }
+        }
+        rmse = sqrt(rmse / datas.size());
+        if(loop > 3 && rmse > prmse) {
+            cout << "Over! rmse = " << prmse << "\tcalerror : " << CalError() << endl;
+            break;
+        }
+        cout << "loop[" << loop << "]\trmse = " << rmse << "\tcalerror : " << CalError() << endl;
+        prmse = rmse;
     }
 }
 
@@ -114,35 +154,6 @@ void SVDPP::Predict(const string& path, const string& result) {
     }
     ifs.close();
     ofs.close();
-}
-
-void SVDPP::Save(const string& path, const string& result) const {
-    ofstream ofs(path.data(), ofstream::out);
-    ofs << mean << endl;
-    ofs << customers.size() << endl;
-    for(map<int, Customer*>::const_iterator it = customers.begin(); it != customers.end(); ++it) {
-        ofs << it->first << '\t'
-            << it->second->rateCnt << '\t'
-            << it->second->rateSum << '\t'
-            << it->second->bu << endl;
-    }
-    ofs << movies.size() << endl;
-    for(map<int, Movie*>::const_iterator it = movies.begin(); it != movies.end(); ++it) {
-        ofs << it->first << '\t'
-            << it->second->rateCnt << '\t'
-            << it->second->rateSum << '\t'
-            << it->second->bi << endl;
-    }
-    ofs.close();
-
-    ofstream rt(result.data(), ofstream::out);
-    for(vector<Entry*>::const_iterator it = datas.begin(); it != datas.end(); ++it) {
-        rt << (*it)->custId << '\t'
-           << (*it)->rate << '\t'
-           << customers.find((*it)->custId)->second->bu << '\t'
-           << movies.find((*it)->movieId)->second->bi << endl;
-    }
-    rt.close();
 }
 
 void SVDPP::InitBais() {
@@ -184,7 +195,7 @@ double SVDPP::CalError() {
     return sqrt(rmse/probes.size());
 }
 
-double SVDPP::predict(int uid, int iid) {
+double SVDPP::predict(const int& uid, const int& iid) {
     map<int, Customer*>::iterator itu = customers.find(uid);
     map<int, Movie*>::iterator itm = movies.find(iid);
     if(itu == customers.end() || itm == movies.end()) {
@@ -199,7 +210,7 @@ double SVDPP::predict(int uid, int iid) {
     double ru = sqrt((double)fd.size());
 
     for(vector<int>::const_iterator it = fd.begin(); it != fd.end(); ++it) {
-        const vector<double>& yj = fdbks[*it].yj;
+        const vector<double>& yj = fdbks[*it]->yj;
         for(int i = 0; i < dim; ++i) tmp[i] += yj[i];
     }
     for(int i = 0; i < dim; ++i) {

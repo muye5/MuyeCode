@@ -9,38 +9,44 @@
 #include <fstream>
 #include <string>
 #include <vector>
-#include <map>
 #include <set>
 using namespace std;
 
+class ProbeEntry {
+public:
+    ProbeEntry(int c, int m, double r = 0.0) : cid(c), mid(m), rate(r) {}
+public:
+    int cid;
+    int mid;
+    double rate;
+};
+
 class Entry {
 public:
-    Entry(int c, int m, double r = 0.0) : custId(c), movieId(m), rate(r) {}
+    Entry(int m, double r = 0.0) : mid(m), rate(r) {}
 public:
-    int custId;
-    int movieId;
+    int mid;
     double rate;
 };
 
 class Customer {
 public:
-    Customer() : rateCnt(0), rateSum(0), bu(0.0) {}
+    Customer() : bu(0.0) {}
 public:
-    vector<double> pu;
-    vector<int> imfdbk;
-    int rateCnt;
-    int rateSum;
     double bu;
+    vector<int> imfdbk;
+    vector<double> pu;
+    vector<Entry> rated;
 };
 
 class Movie {
 public:
-    Movie() : rateCnt(0), rateSum(0), bi(0.0) {}
+    Movie() : n(0), bi(0.0) {}
 public:
-    vector<double> qi;
-    int rateCnt;
-    int rateSum;
+    int n;
     double bi;
+    vector<double> qi;
+    vector<double> yi;
 };
 
 class FeedBack {
@@ -50,7 +56,7 @@ public:
 
 class SVDPP {
 public:
-    SVDPP(int dimension);
+    SVDPP(int dimension, int nu, int nm, int nf);
     ~SVDPP();
     void TrainDataLoad(const string& path);
     void ProbeDataLoad(const string& path);
@@ -65,14 +71,11 @@ private:
     double predict(const int& uid, const int& iid);
 private:
     int dim;
-    int numMovie;
-    int numCust;
     double mean;
-    vector<Entry*> datas;
-    vector<Entry*> probes;
-    map<int, Customer*> customers;
-    map<int, Movie*> movies;
-    map<int, FeedBack*> fdbks;
+    vector<ProbeEntry> probes;
+    vector<Customer> customers;
+    vector<Movie> movies;
+    vector<FeedBack> fdbks;
 };
 #endif  // SVDPLUSPLUS_H_
 
