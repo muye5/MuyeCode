@@ -61,7 +61,7 @@ public:
     void TrainDataLoad(const string& path);
     void ProbeDataLoad(const string& path);
     void ImplicitDataLoad(const string& path);
-    void Train(int maxloops, double alpha1, double alpha2, double beta1, double beta2);
+    void Train(int maxloops, double alpha1, double alpha2, double beta1, double beta2, double beta3);
     void Predict(const string& path, const string& result);
 private:
     void InitBais(); // initialize bu bi

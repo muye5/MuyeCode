@@ -9,6 +9,7 @@ int main(int argc, char **argv) {
     double alpha2 = 0.005;
     double beta1 = 0.005;
     double beta2 = 0.005;
+    double beta3 = 0.005;
 
     SVDPP svdpp(50, 9722, 7889, 14632);
 
@@ -22,7 +23,7 @@ int main(int argc, char **argv) {
     svdpp.ImplicitDataLoad("./data/history.txt");
 
     cout << "Begin Train..." << endl;
-    svdpp.Train(maxloops, alpha1, alpha2, beta1, beta2);
+    svdpp.Train(maxloops, alpha1, alpha2, beta1, beta2, beta3);
 
     cout << "Begin Predict..." << endl;
     svdpp.Predict("./data/pred.txt", "./data/rt.txt");

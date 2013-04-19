@@ -60,7 +60,7 @@ void SVDPP::ImplicitDataLoad(const string& path) {
     ifs.close();
 }
 
-void SVDPP::Train(int maxloops, double alpha1, double alpha2, double beta1, double beta2) {
+void SVDPP::Train(int maxloops, double alpha1, double alpha2, double beta1, double beta2, double beta3) {
     cout << "mean = " << mean << endl;
     cout << "initialize bais" << endl;
     InitBais();
@@ -69,19 +69,29 @@ void SVDPP::Train(int maxloops, double alpha1, double alpha2, double beta1, doub
     long double prmse = 100000000000.0, rmse = 0.0;
     for(int loop = 0; loop < maxloops; ++loop) {
         rmse = 0.0;
-        int numentries = 0;
+        for(vector<Movie>::iterator it = movies.begin(); it != movies.end(); ++it) {
+            rmse += beta3 * pow(it->bi, 2);
+            for(int i = 0; i < dim; ++i) rmse += beta3 * pow(it->qi[i], 2);
+        }
         for(vector<Customer>::iterator it = ++customers.begin(); it != customers.end(); ++it) {
+            rmse += pow(it->bu, 2);
             vector<double>& pu = it->pu;
             vector<int>& fd = it->imfdbk;
             vector<Entry>& rd = it->rated;
             vector<double> tmp(dim, 0.0), tmp1(dim, 0.0);
             for(vector<int>::iterator itf = fd.begin(); itf != fd.end(); ++itf) {
                 vector<double>& yj = fdbks[*itf].yj;
-                for(int i = 0; i < dim; ++i) tmp[i] += yj[i];
+                for(int i = 0; i < dim; ++i) {
+                    tmp[i] += yj[i];
+                    rmse += beta3 * pow(yj[i], 2);
+                }
             }
             for(vector<Entry>::iterator itr = rd.begin(); itr != rd.end(); ++itr) {
                 vector<double>& yi = movies[itr->mid].yi;
-                for(int i = 0; i < dim; ++i) tmp1[i] += yi[i];
+                for(int i = 0; i < dim; ++i) {
+                    tmp1[i] += yi[i];
+                    rmse += beta3 * pow(yi[i], 2);
+                }
             }
             double ru = sqrt((double)fd.size()), ru1 = sqrt((double)rd.size());
             for(int i = 0; i < dim; ++i) {
@@ -89,6 +99,7 @@ void SVDPP::Train(int maxloops, double alpha1, double alpha2, double beta1, doub
                 tmp1[i] /= ru1;
                 tmp[i] += tmp1[i];
                 tmp[i] += pu[i];
+                rmse += beta3 * pow(pu[i], 2);
             }
             for(vector<Entry>::iterator itd = rd.begin(); itd != rd.end(); ++itd) {
                 double& bi = movies[itd->mid].bi;
@@ -113,11 +124,8 @@ void SVDPP::Train(int maxloops, double alpha1, double alpha2, double beta1, doub
                 }
                 // update qi
                 for(int i = 0; i < dim; ++i) qi[i] += alpha2 * (eui * tmp[i] - beta2 * qi[i]);
-                ++numentries;
-                rmse += pow(eui, 2);
             }
         }
-        rmse = sqrt(rmse / numentries);
         if(loop > 3 && rmse > prmse) {
             cout << "Over! rmse = " << rmse << "\tcalerror : " << CalError() << endl;
             break;
