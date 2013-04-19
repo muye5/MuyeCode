@@ -9,7 +9,7 @@ int main(int argc, char **argv) {
     double alpha2 = 0.005;
     double beta1 = 0.005;
     double beta2 = 0.005;
-    double beta3 = 0.005;
+    double beta3 = 0.01;
 
     SVDPP svdpp(50, 9722, 7889, 14632);
 

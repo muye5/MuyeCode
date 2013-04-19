@@ -69,7 +69,7 @@ void SVDPP::Train(int maxloops, double alpha1, double alpha2, double beta1, doub
     long double prmse = 100000000000.0, rmse = 0.0;
     for(int loop = 0; loop < maxloops; ++loop) {
         rmse = 0.0;
-        for(vector<Movie>::iterator it = movies.begin(); it != movies.end(); ++it) {
+        for(vector<Movie>::iterator it = ++movies.begin(); it != movies.end(); ++it) {
             rmse += beta3 * pow(it->bi, 2);
             for(int i = 0; i < dim; ++i) rmse += beta3 * pow(it->qi[i], 2);
         }
